@@ -10,6 +10,7 @@ public class CloudemusicAdminApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(CloudemusicAdminApplication.class, args);
+        System.out.println("启动成功");
     }
 
 }
