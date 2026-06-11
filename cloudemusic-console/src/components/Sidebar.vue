@@ -1,16 +1,17 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import LoginModal from './LoginModal.vue'
 
 const router = useRouter()
 const route = useRoute()
 
-// Mock 用户数据，后续接入接口后替换
 const isLoggedIn = ref(false)
 const user = ref({
-  nickname: '音乐爱好者',
+  nickname: '',
   avatar: '',
 })
+const showLoginModal = ref(false)
 
 const showDropdown = ref(false)
 const userSectionRef = ref(null)
@@ -66,11 +67,17 @@ function handleAction(action) {
   showDropdown.value = false
   if (action === 'logout') {
     isLoggedIn.value = false
+    user.value = { nickname: '', avatar: '' }
+    localStorage.removeItem('token')
   } else if (action === 'login') {
-    // Mock 登录，后续替换为真实登录逻辑
-    isLoggedIn.value = true
-    showDropdown.value = true
+    showLoginModal.value = true
   }
+}
+
+function onLoginSuccess(data) {
+  isLoggedIn.value = true
+  user.value = { nickname: data.nickname, avatar: '' }
+  showLoginModal.value = false
 }
 </script>
 
@@ -99,15 +106,9 @@ function handleAction(action) {
 
     <!-- 用户登录栏 -->
     <div ref="userSectionRef" class="user-section">
-      <!-- 未登录 -->
-      <div v-if="!isLoggedIn" class="user-card" @click="handleAction('login')">
-        <div class="user-avatar-placeholder">
-          <span>👤</span>
-        </div>
-        <div class="user-info">
-          <p class="user-name">请先登录</p>
-          <p class="user-desc">点击登录/注册</p>
-        </div>
+      <!-- 未登录：一行文字 -->
+      <div v-if="!isLoggedIn" class="login-trigger" @click="handleAction('login')">
+        <span class="login-trigger-text">请登录/注册</span>
       </div>
 
       <!-- 已登录 -->
@@ -141,6 +142,13 @@ function handleAction(action) {
         </Transition>
       </div>
     </div>
+
+    <!-- 登录/注册弹窗 -->
+    <LoginModal
+      :visible="showLoginModal"
+      @close="showLoginModal = false"
+      @login-success="onLoginSuccess"
+    />
   </aside>
 </template>
 
@@ -220,6 +228,29 @@ function handleAction(action) {
 }
 .nav-label {
   font-size: 14px;
+}
+
+/* 未登录触发文字 */
+.login-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 10px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+.login-trigger:hover {
+  background: #eee;
+}
+.login-trigger-text {
+  font-size: 14px;
+  color: var(--text-light);
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.login-trigger:hover .login-trigger-text {
+  color: var(--color-primary);
 }
 
 /* 用户登录栏 */
