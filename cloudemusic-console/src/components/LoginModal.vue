@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { Icon } from '@iconify/vue'
 import { login, register } from '@/api/user'
 
 const props = defineProps({
@@ -20,10 +21,20 @@ const registerForm = ref({
   username: '',
   password: '',
   confirmPassword: '',
+  agree: false,
 })
 
 const loading = ref(false)
 const errorMsg = ref('')
+const showPwd = ref(false)        // 登录密码可见
+const showRegPwd = ref(false)     // 注册密码可见
+const showRegConfirm = ref(false) // 确认密码可见
+
+const subtitleText = computed(() =>
+  activeTab.value === 'login'
+    ? '登录 CloudMusic 享受更多精彩'
+    : '注册 CloudMusic 账号'
+)
 
 // 记住密码回填
 const saved = localStorage.getItem('saved_credentials')
@@ -41,6 +52,9 @@ watch(() => props.visible, (v) => {
   if (v) {
     activeTab.value = 'login'
     errorMsg.value = ''
+    showPwd.value = false
+    showRegPwd.value = false
+    showRegConfirm.value = false
   }
 })
 
@@ -50,6 +64,11 @@ function onOverlayClick(e) {
 
 function close() {
   emit('close')
+  errorMsg.value = ''
+}
+
+function switchTab(tab) {
+  activeTab.value = tab
   errorMsg.value = ''
 }
 
@@ -67,7 +86,6 @@ async function handleLogin() {
     })
     localStorage.setItem('token', token)
 
-    // 记住密码
     if (loginForm.value.remember) {
       localStorage.setItem('saved_credentials', JSON.stringify({
         username: loginForm.value.username,
@@ -88,7 +106,7 @@ async function handleLogin() {
 
 async function handleRegister() {
   errorMsg.value = ''
-  const { username, password, confirmPassword } = registerForm.value
+  const { username, password, confirmPassword, agree } = registerForm.value
   if (!username || !password) {
     errorMsg.value = '请输入用户名和密码'
     return
@@ -101,10 +119,13 @@ async function handleRegister() {
     errorMsg.value = '两次密码输入不一致'
     return
   }
+  if (!agree) {
+    errorMsg.value = '请阅读并同意用户隐私协议'
+    return
+  }
   loading.value = true
   try {
     await register({ username, password, nickname: username })
-    // 注册成功 → 切回登录页并填充用户名
     loginForm.value.username = username
     loginForm.value.password = ''
     activeTab.value = 'login'
@@ -131,21 +152,7 @@ function onKeydown(e) {
           <!-- 标题区域 -->
           <div class="modal-header">
             <h3 class="modal-title">音乐的力量</h3>
-            <p class="modal-subtitle">登录 CloudMusic 享受更多精彩</p>
-          </div>
-
-          <!-- 选项卡 -->
-          <div class="tabs">
-            <button
-              class="tab"
-              :class="{ active: activeTab === 'login' }"
-              @click="activeTab = 'login'; errorMsg = ''"
-            >登录</button>
-            <button
-              class="tab"
-              :class="{ active: activeTab === 'register' }"
-              @click="activeTab = 'register'; errorMsg = ''"
-            >注册</button>
+            <p class="modal-subtitle">{{ subtitleText }}</p>
           </div>
 
           <!-- 错误/成功提示 -->
@@ -157,7 +164,8 @@ function onKeydown(e) {
 
           <!-- 登录表单 -->
           <form v-if="activeTab === 'login'" class="form" @submit.prevent="handleLogin">
-            <div class="input-group">
+            <div class="input-wrapper">
+              <Icon class="input-icon" icon="mdi:account-outline" width="18" height="18" />
               <input
                 v-model="loginForm.username"
                 type="text"
@@ -165,13 +173,17 @@ function onKeydown(e) {
                 autocomplete="username"
               />
             </div>
-            <div class="input-group">
+            <div class="input-wrapper">
+              <Icon class="input-icon" icon="mdi:lock-outline" width="18" height="18" />
               <input
                 v-model="loginForm.password"
-                type="password"
+                :type="showPwd ? 'text' : 'password'"
                 placeholder="密码"
                 autocomplete="current-password"
               />
+              <button type="button" class="pwd-toggle" @click="showPwd = !showPwd" tabindex="-1">
+                <Icon :icon="showPwd ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" width="18" height="18" />
+              </button>
             </div>
 
             <div class="form-options">
@@ -179,7 +191,7 @@ function onKeydown(e) {
                 <input v-model="loginForm.remember" type="checkbox" />
                 <span>记住密码</span>
               </label>
-              <a class="forgot-link" href="javascript:;" @click="$emit('close'); alert('请联系管理员重置密码')">忘记密码？</a>
+              <a class="forgot-link" href="javascript:;" @click="close(); $nextTick(() => alert('请联系管理员重置密码'))">忘记密码？</a>
             </div>
 
             <button type="submit" class="submit-btn" :disabled="loading">
@@ -188,13 +200,14 @@ function onKeydown(e) {
 
             <div class="form-footer">
               <span>还没有账号？</span>
-              <a href="javascript:;" class="switch-link" @click="activeTab = 'register'; errorMsg = ''">去注册</a>
+              <a href="javascript:;" class="switch-link" @click="switchTab('register')">去注册</a>
             </div>
           </form>
 
           <!-- 注册表单 -->
           <form v-else class="form" @submit.prevent="handleRegister">
-            <div class="input-group">
+            <div class="input-wrapper">
+              <Icon class="input-icon" icon="mdi:account-outline" width="18" height="18" />
               <input
                 v-model="registerForm.username"
                 type="text"
@@ -202,22 +215,35 @@ function onKeydown(e) {
                 autocomplete="username"
               />
             </div>
-            <div class="input-group">
+            <div class="input-wrapper">
+              <Icon class="input-icon" icon="mdi:lock-outline" width="18" height="18" />
               <input
                 v-model="registerForm.password"
-                type="password"
+                :type="showRegPwd ? 'text' : 'password'"
                 placeholder="密码（至少6位）"
                 autocomplete="new-password"
               />
+              <button type="button" class="pwd-toggle" @click="showRegPwd = !showRegPwd" tabindex="-1">
+                <Icon :icon="showRegPwd ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" width="18" height="18" />
+              </button>
             </div>
-            <div class="input-group">
+            <div class="input-wrapper">
+              <Icon class="input-icon" icon="mdi:lock-outline" width="18" height="18" />
               <input
                 v-model="registerForm.confirmPassword"
-                type="password"
+                :type="showRegConfirm ? 'text' : 'password'"
                 placeholder="确认密码"
                 autocomplete="new-password"
               />
+              <button type="button" class="pwd-toggle" @click="showRegConfirm = !showRegConfirm" tabindex="-1">
+                <Icon :icon="showRegConfirm ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" width="18" height="18" />
+              </button>
             </div>
+
+            <label class="agree-privacy">
+              <input v-model="registerForm.agree" type="checkbox" />
+              <span>我已阅读并同意 <a href="javascript:;" @click.stop="alert('《用户隐私协议》内容，敬请查阅')">《用户隐私协议》</a></span>
+            </label>
 
             <button type="submit" class="submit-btn" :disabled="loading">
               {{ loading ? '注册中...' : '注 册' }}
@@ -225,7 +251,7 @@ function onKeydown(e) {
 
             <div class="form-footer">
               <span>已有账号？</span>
-              <a href="javascript:;" class="switch-link" @click="activeTab = 'login'; errorMsg = ''">去登录</a>
+              <a href="javascript:;" class="switch-link" @click="switchTab('login')">去登录</a>
             </div>
           </form>
         </div>
@@ -296,48 +322,12 @@ function onKeydown(e) {
   margin-top: 6px;
 }
 
-/* 选项卡 */
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #e5e5e5;
-  margin-bottom: 20px;
-}
-.tab {
-  flex: 1;
-  height: 40px;
-  border: none;
-  background: none;
-  font-size: 15px;
-  color: #666;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.2s;
-}
-.tab:hover {
-  color: #333;
-}
-.tab.active {
-  color: var(--color-primary);
-  font-weight: 600;
-}
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 2px;
-  background: var(--color-primary);
-  border-radius: 1px;
-}
-
 /* 提示消息 */
 .form-message {
   text-align: center;
   font-size: 13px;
   color: var(--color-primary);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 .form-message.success {
   color: #67c23a;
@@ -350,10 +340,26 @@ function onKeydown(e) {
   gap: 16px;
 }
 
-.input-group input {
+/* 输入框容器（图标 + input + 切换按钮） */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-wrapper .input-icon {
+  position: absolute;
+  left: 12px;
+  color: #bbb;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+.input-wrapper:focus-within .input-icon {
+  color: var(--color-primary);
+}
+.input-wrapper input {
   width: 100%;
   height: 42px;
-  padding: 0 14px;
+  padding: 0 38px 0 38px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
@@ -361,11 +367,32 @@ function onKeydown(e) {
   outline: none;
   transition: border-color 0.2s;
 }
-.input-group input::placeholder {
+.input-wrapper input::placeholder {
   color: #bbb;
 }
-.input-group input:focus {
+.input-wrapper input:focus {
   border-color: var(--color-primary);
+}
+
+/* 密码可见切换 */
+.pwd-toggle {
+  position: absolute;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: none;
+  color: #bbb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.2s, background 0.2s;
+}
+.pwd-toggle:hover {
+  color: #666;
+  background: #f0f0f0;
 }
 
 /* 选项行 */
@@ -382,7 +409,8 @@ function onKeydown(e) {
   color: #666;
   cursor: pointer;
 }
-.remember input[type="checkbox"] {
+.remember input[type="checkbox"],
+.agree-privacy input[type="checkbox"] {
   accent-color: var(--color-primary);
 }
 .forgot-link {
@@ -390,6 +418,27 @@ function onKeydown(e) {
   font-size: 13px;
 }
 .forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* 隐私协议 */
+.agree-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.agree-privacy input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.agree-privacy a {
+  color: var(--text-link);
+}
+.agree-privacy a:hover {
   text-decoration: underline;
 }
 
