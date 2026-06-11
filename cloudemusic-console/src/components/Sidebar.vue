@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { Icon } from '@iconify/vue'
 import LoginModal from './LoginModal.vue'
 
 const router = useRouter()
@@ -29,22 +30,22 @@ const navItems = [
   {
     group: '发现音乐',
     items: [
-      { path: '/', label: '推荐', icon: '♡' },
-      { path: '/toplist', label: '排行榜', icon: '♫' },
-      { path: '/artists', label: '歌手', icon: '♪' },
+      { path: '/', label: '推荐', icon: 'mdi:compass-outline' },
+      { path: '/toplist', label: '排行榜', icon: 'mdi:chart-line' },
+      { path: '/artists', label: '歌手', icon: 'mdi:microphone' },
     ],
   },
   {
     group: '我的音乐',
     items: [
-      { path: '/favorites', label: '收藏', icon: '★' },
-      { path: '/history', label: '播放历史', icon: '◷' },
+      { path: '/favorites', label: '收藏', icon: 'mdi:heart-outline' },
+      { path: '/history', label: '播放历史', icon: 'mdi:history' },
     ],
   },
   {
     group: '其他',
     items: [
-      { path: '/search', label: '搜索', icon: '⌕' },
+      { path: '/search', label: '搜索', icon: 'mdi:magnify' },
     ],
   },
 ]
@@ -84,7 +85,7 @@ function onLoginSuccess(data) {
 <template>
   <aside class="sidebar">
     <div class="logo" @click="navigate('/')">
-      <span class="logo-icon">♪</span>
+      <span class="logo-icon"><Icon icon="mdi:music-note" width="28" height="28" /></span>
       <span class="logo-text">CloudMusic</span>
     </div>
 
@@ -98,7 +99,7 @@ function onLoginSuccess(data) {
           :class="{ active: isActive(item.path) }"
           @click="navigate(item.path)"
         >
-          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-icon"><Icon :icon="item.icon" width="16" height="16" /></span>
           <span class="nav-label">{{ item.label }}</span>
         </div>
       </div>
@@ -126,16 +127,16 @@ function onLoginSuccess(data) {
         <Transition name="dropdown">
           <div v-if="showDropdown" class="dropdown-menu" @click.stop>
             <div class="dropdown-item" @click="navigate('/profile'); showDropdown = false">
-              <span class="dropdown-icon">👤</span>
+              <span class="dropdown-icon"><Icon icon="mdi:account-outline" width="16" height="16" /></span>
               <span>个人中心</span>
             </div>
             <div class="dropdown-item" @click="navigate('/settings'); showDropdown = false">
-              <span class="dropdown-icon">⚙</span>
+              <span class="dropdown-icon"><Icon icon="mdi:cog-outline" width="16" height="16" /></span>
               <span>设置</span>
             </div>
             <div class="dropdown-divider"></div>
             <div class="dropdown-item logout" @click="handleAction('logout')">
-              <span class="dropdown-icon">⇢</span>
+              <span class="dropdown-icon"><Icon icon="mdi:logout" width="16" height="16" /></span>
               <span>退出登录</span>
             </div>
           </div>

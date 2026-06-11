@@ -1,4 +1,5 @@
 <script setup>
+import { Icon } from '@iconify/vue'
 import { useMusicStore } from '@/stores/music'
 
 const musicStore = useMusicStore()
@@ -10,26 +11,34 @@ const musicStore = useMusicStore()
       <!-- 歌曲信息 -->
       <div class="player-song">
         <div class="cover-placeholder">
-          <span>♪</span>
+          <Icon icon="mdi:music-note" width="28" height="28" />
         </div>
         <div class="song-info">
           <p class="song-name">未在播放</p>
           <p class="song-artist">选择一首歌曲开始播放</p>
         </div>
-        <button class="like-btn">♡</button>
+        <button class="like-btn">
+          <Icon icon="mdi:heart-outline" width="20" height="20" />
+        </button>
       </div>
 
       <!-- 播放控制 -->
       <div class="player-controls">
         <div class="controls-top">
-          <button class="ctrl-btn" title="顺序播放" @click="musicStore.togglePlayMode()">
-            <span v-if="musicStore.playMode === 'order'">🔁</span>
-            <span v-else-if="musicStore.playMode === 'random'">🔀</span>
-            <span v-else>🔂</span>
+          <button class="ctrl-btn" title="切换播放模式" @click="musicStore.togglePlayMode()">
+            <Icon v-if="musicStore.playMode === 'order'" icon="mdi:repeat" width="18" height="18" />
+            <Icon v-else-if="musicStore.playMode === 'random'" icon="mdi:shuffle" width="18" height="18" />
+            <Icon v-else icon="mdi:repeat-off" width="18" height="18" />
           </button>
-          <button class="ctrl-btn" title="上一首">⏮</button>
-          <button class="ctrl-btn play-btn" title="播放/暂停">▶</button>
-          <button class="ctrl-btn" title="下一首">⏭</button>
+          <button class="ctrl-btn" title="上一首">
+            <Icon icon="mdi:skip-previous" width="20" height="20" />
+          </button>
+          <button class="ctrl-btn play-btn" title="播放/暂停">
+            <Icon icon="mdi:play" width="20" height="20" />
+          </button>
+          <button class="ctrl-btn" title="下一首">
+            <Icon icon="mdi:skip-next" width="20" height="20" />
+          </button>
         </div>
         <div class="progress-area">
           <span class="time">00:00</span>
@@ -43,8 +52,12 @@ const musicStore = useMusicStore()
 
       <!-- 右侧功能 -->
       <div class="player-extra">
-        <button class="ctrl-btn" title="歌词">📃</button>
-        <button class="ctrl-btn" title="音量">🔊</button>
+        <button class="ctrl-btn" title="歌词">
+          <Icon icon="mdi:file-text-outline" width="18" height="18" />
+        </button>
+        <button class="ctrl-btn" title="音量">
+          <Icon icon="mdi:volume-high" width="18" height="18" />
+        </button>
       </div>
     </div>
   </footer>
