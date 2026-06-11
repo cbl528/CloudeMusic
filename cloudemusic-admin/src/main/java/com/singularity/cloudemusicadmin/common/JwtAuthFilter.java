@@ -70,11 +70,14 @@ public class JwtAuthFilter implements Filter {
             return;
         }
 
-        // 将用户信息注入请求属性，后续接口可从 request 中获取
-        req.setAttribute("userId", jwtUtil.getUserId(token));
-        req.setAttribute("username", jwtUtil.getUsername(token));
+        // 将用户信息注入 ThreadLocal 上下文
+        UserContext.set(jwtUtil.getUserId(token), jwtUtil.getUsername(token));
 
-        chain.doFilter(request, response);
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            UserContext.clear();
+        }
     }
 
     /** 将错误结果以 JSON 形式写回响应 */
