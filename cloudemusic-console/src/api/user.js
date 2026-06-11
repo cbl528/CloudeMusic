@@ -19,3 +19,28 @@ export function register(data) {
     data,
   })
 }
+
+/** 获取当前用户信息 */
+export function getUserInfo() {
+  return request({
+    url: `${BASE_URL}/info`,
+    method: 'get',
+  })
+}
+
+/** 更新用户信息（昵称/头像/个性签名） */
+export function updateUserInfo(data) {
+  return request({
+    url: `${BASE_URL}/info`,
+    method: 'put',
+    data,
+  })
+}
+
+/** 注销账号 */
+export function deleteAccount() {
+  return request({
+    url: `${BASE_URL}/account`,
+    method: 'delete',
+  })
+}
