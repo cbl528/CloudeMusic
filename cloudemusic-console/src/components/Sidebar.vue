@@ -70,6 +70,8 @@ function handleAction(action) {
     isLoggedIn.value = false
     user.value = { nickname: '', avatar: '' }
     localStorage.removeItem('token')
+    localStorage.removeItem('saved_credentials')
+    router.push('/')
   } else if (action === 'login') {
     showLoginModal.value = true
   }

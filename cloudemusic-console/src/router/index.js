@@ -9,6 +9,9 @@ import History from '@/views/History.vue'
 import Profile from '@/views/Profile.vue'
 import Settings from '@/views/Settings.vue'
 
+/** 需要登录才能访问的路由名称 */
+const authRoutes = ['favorites', 'history', 'profile', 'settings']
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -16,17 +19,26 @@ const router = createRouter({
       path: '/',
       component: MainLayout,
       children: [
-        { path: '', name: 'recommend', component: Recommend },
-        { path: 'toplist', name: 'toplist', component: Toplist },
-        { path: 'artists', name: 'artists', component: Artists },
-        { path: 'search', name: 'search', component: Search },
-        { path: 'favorites', name: 'favorites', component: Favorites },
-        { path: 'history', name: 'history', component: History },
-        { path: 'profile', name: 'profile', component: Profile },
-        { path: 'settings', name: 'settings', component: Settings },
+        { path: '', name: 'recommend', component: Recommend, meta: { requiresAuth: false } },
+        { path: 'toplist', name: 'toplist', component: Toplist, meta: { requiresAuth: false } },
+        { path: 'artists', name: 'artists', component: Artists, meta: { requiresAuth: false } },
+        { path: 'search', name: 'search', component: Search, meta: { requiresAuth: false } },
+        { path: 'favorites', name: 'favorites', component: Favorites, meta: { requiresAuth: true } },
+        { path: 'history', name: 'history', component: History, meta: { requiresAuth: true } },
+        { path: 'profile', name: 'profile', component: Profile, meta: { requiresAuth: true } },
+        { path: 'settings', name: 'settings', component: Settings, meta: { requiresAuth: true } },
       ],
     },
   ],
+})
+
+/** 路由守卫：未登录禁止直接访问需要登录的页面 */
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !localStorage.getItem('token')) {
+    next({ name: 'recommend' })
+  } else {
+    next()
+  }
 })
 
 export default router
