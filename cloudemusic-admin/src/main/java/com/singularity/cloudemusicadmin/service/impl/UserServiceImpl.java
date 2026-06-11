@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.singularity.cloudemusicadmin.common.BusinessException;
 import com.singularity.cloudemusicadmin.dto.request.LoginRequest;
 import com.singularity.cloudemusicadmin.dto.request.RegisterRequest;
+import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
+import com.singularity.cloudemusicadmin.dto.response.UserInfoResponse;
 import com.singularity.cloudemusicadmin.entity.User;
 import com.singularity.cloudemusicadmin.mapper.UserMapper;
 import com.singularity.cloudemusicadmin.service.UserService;
@@ -69,5 +71,59 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(500, "注册失败");
         }
         return user;
+    }
+
+    @Override
+    public UserInfoResponse getUserInfo(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+        return toUserInfoResponse(user);
+    }
+
+    @Override
+    public UserInfoResponse updateUserInfo(Long userId, UserInfoUpdateRequest request) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        if (request.getNickname() != null) {
+            user.setNickname(request.getNickname());
+        }
+        if (request.getAvatar() != null) {
+            user.setAvatar(request.getAvatar());
+        }
+        if (request.getSignature() != null) {
+            user.setSignature(request.getSignature());
+        }
+
+        userMapper.updateById(user);
+        return toUserInfoResponse(user);
+    }
+
+    @Override
+    public void deleteAccount(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+        userMapper.deleteById(userId);
+    }
+
+    /** 将 User 实体转换为安全的响应 DTO */
+    private UserInfoResponse toUserInfoResponse(User user) {
+        UserInfoResponse resp = new UserInfoResponse();
+        resp.setId(user.getId());
+        resp.setUsername(user.getUsername());
+        resp.setNickname(user.getNickname());
+        resp.setAvatar(user.getAvatar());
+        resp.setEmail(user.getEmail());
+        resp.setPhone(user.getPhone());
+        resp.setGender(user.getGender());
+        resp.setSignature(user.getSignature());
+        resp.setCreateTime(user.getCreateTime());
+        return resp;
     }
 }
