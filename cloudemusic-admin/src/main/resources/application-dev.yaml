@@ -23,6 +23,11 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
 
+# JWT
+jwt:
+  secret: CloudeMusicSecretKeyForJWT2024BySingularityAtLeast256BitsLong
+  expiration: 86400000
+
 # MyBatis-Plus
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
