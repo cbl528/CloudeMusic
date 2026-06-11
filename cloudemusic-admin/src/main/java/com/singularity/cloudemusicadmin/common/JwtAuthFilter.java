@@ -39,6 +39,12 @@ public class JwtAuthFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
         String path = req.getRequestURI();
 
+        // OPTIONS 预检请求直接放行（CORS 由 CorsFilter 处理）
+        if ("OPTIONS".equalsIgnoreCase(req.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         // 登录和注册接口放行，无需 token
         if (path.equals(LOGIN_PATH) || path.equals(REGISTER_PATH)) {
             chain.doFilter(request, response);
