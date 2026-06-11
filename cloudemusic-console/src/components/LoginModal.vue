@@ -2,6 +2,9 @@
 import { ref, watch, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { login, register } from '@/api/user'
+import { useToast } from '@/composables/useToast'
+
+const toast = useToast()
 
 const props = defineProps({
   visible: Boolean,
@@ -95,10 +98,12 @@ async function handleLogin() {
       localStorage.removeItem('saved_credentials')
     }
 
+    toast.success('登录成功')
     emit('login-success', { nickname: loginForm.value.username })
     close()
   } catch (e) {
-    errorMsg.value = e.message || '登录失败，请检查用户名和密码'
+    errorMsg.value = e.message || '登录失败'
+    toast.error(errorMsg.value)
   } finally {
     loading.value = false
   }
@@ -126,12 +131,14 @@ async function handleRegister() {
   loading.value = true
   try {
     await register({ username, password, nickname: username })
+    toast.success('注册成功')
     loginForm.value.username = username
     loginForm.value.password = ''
     activeTab.value = 'login'
     errorMsg.value = '注册成功，请登录'
   } catch (e) {
     errorMsg.value = e.message || '注册失败'
+    toast.error(errorMsg.value)
   } finally {
     loading.value = false
   }

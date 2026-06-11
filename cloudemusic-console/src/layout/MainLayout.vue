@@ -1,9 +1,11 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import PlayerBar from '@/components/PlayerBar.vue'
+import Toast from '@/components/Toast.vue'
 </script>
 
 <template>
+  <Toast />
   <div class="layout">
     <Sidebar />
     <div class="right-container">

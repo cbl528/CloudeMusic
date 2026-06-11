@@ -3,9 +3,11 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import LoginModal from './LoginModal.vue'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 
 const isLoggedIn = ref(false)
 const user = ref({
@@ -71,6 +73,7 @@ function handleAction(action) {
     user.value = { nickname: '', avatar: '' }
     localStorage.removeItem('token')
     localStorage.removeItem('saved_credentials')
+    toast.success('已退出登录')
     router.push('/')
   } else if (action === 'login') {
     showLoginModal.value = true
