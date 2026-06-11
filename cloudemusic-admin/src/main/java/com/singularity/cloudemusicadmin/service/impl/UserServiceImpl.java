@@ -62,13 +62,12 @@ public class UserServiceImpl implements UserService {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setNickname(request.getNickname() != null ? request.getNickname() : request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setGender(request.getGender());
-        user.setSignature(request.getSignature());
         user.setStatus(1);
 
-        userMapper.insert(user);
+        int insert = userMapper.insert(user);
+        if(insert < 1){
+            throw new BusinessException(500, "注册失败");
+        }
         return user;
     }
 }
