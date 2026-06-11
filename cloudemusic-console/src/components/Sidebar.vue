@@ -1,8 +1,28 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
+
+// Mock 用户数据，后续接入接口后替换
+const isLoggedIn = ref(false)
+const user = ref({
+  nickname: '音乐爱好者',
+  avatar: '',
+})
+
+const showDropdown = ref(false)
+const userSectionRef = ref(null)
+
+function onClickOutside(e) {
+  if (userSectionRef.value && !userSectionRef.value.contains(e.target)) {
+    showDropdown.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', onClickOutside))
+onUnmounted(() => document.removeEventListener('click', onClickOutside))
 
 const navItems = [
   {
@@ -35,6 +55,23 @@ function navigate(path) {
 function isActive(path) {
   return route.path === path
 }
+
+function toggleDropdown() {
+  if (isLoggedIn.value) {
+    showDropdown.value = !showDropdown.value
+  }
+}
+
+function handleAction(action) {
+  showDropdown.value = false
+  if (action === 'logout') {
+    isLoggedIn.value = false
+  } else if (action === 'login') {
+    // Mock 登录，后续替换为真实登录逻辑
+    isLoggedIn.value = true
+    showDropdown.value = true
+  }
+}
 </script>
 
 <template>
@@ -59,6 +96,51 @@ function isActive(path) {
         </div>
       </div>
     </nav>
+
+    <!-- 用户登录栏 -->
+    <div ref="userSectionRef" class="user-section">
+      <!-- 未登录 -->
+      <div v-if="!isLoggedIn" class="user-card" @click="handleAction('login')">
+        <div class="user-avatar-placeholder">
+          <span>👤</span>
+        </div>
+        <div class="user-info">
+          <p class="user-name">请先登录</p>
+          <p class="user-desc">点击登录/注册</p>
+        </div>
+      </div>
+
+      <!-- 已登录 -->
+      <div v-else class="user-card" @click="toggleDropdown">
+        <div class="user-avatar">
+          <span class="avatar-text">{{ user.nickname.charAt(0) }}</span>
+        </div>
+        <div class="user-info">
+          <p class="user-name">{{ user.nickname }}</p>
+          <p class="user-desc">查看个人主页</p>
+        </div>
+        <span class="arrow" :class="{ open: showDropdown }">▾</span>
+
+        <!-- 下拉菜单 -->
+        <Transition name="dropdown">
+          <div v-if="showDropdown" class="dropdown-menu" @click.stop>
+            <div class="dropdown-item" @click="navigate('/profile'); showDropdown = false">
+              <span class="dropdown-icon">👤</span>
+              <span>个人中心</span>
+            </div>
+            <div class="dropdown-item" @click="navigate('/settings'); showDropdown = false">
+              <span class="dropdown-icon">⚙</span>
+              <span>设置</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item logout" @click="handleAction('logout')">
+              <span class="dropdown-icon">⇢</span>
+              <span>退出登录</span>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </div>
   </aside>
 </template>
 
@@ -71,6 +153,7 @@ function isActive(path) {
   display: flex;
   flex-direction: column;
   user-select: none;
+  position: relative;
 }
 
 .logo {
@@ -137,5 +220,130 @@ function isActive(path) {
 }
 .nav-label {
   font-size: 14px;
+}
+
+/* 用户登录栏 */
+.user-section {
+  border-top: 1px solid var(--border-color);
+  padding: 12px;
+  flex-shrink: 0;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.user-card:hover {
+  background: #eee;
+}
+
+.user-avatar-placeholder,
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.user-avatar-placeholder {
+  background: #e0e0e0;
+  color: var(--text-light);
+}
+.user-avatar {
+  background: var(--color-primary);
+  color: var(--text-white);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-desc {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 1px;
+}
+
+.arrow {
+  font-size: 12px;
+  color: var(--text-light);
+  transition: transform 0.2s;
+}
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+/* 下拉菜单 */
+.dropdown-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 12px;
+  right: 12px;
+  background: var(--bg-content);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 200;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.dropdown-item:hover {
+  background: #f5f5f5;
+  color: var(--text-primary);
+}
+.dropdown-item.logout:hover {
+  color: var(--color-primary);
+}
+
+.dropdown-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+/* 下拉动画 */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
 }
 </style>

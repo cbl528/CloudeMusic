@@ -6,6 +6,8 @@ import Artists from '@/views/Artists.vue'
 import Search from '@/views/Search.vue'
 import Favorites from '@/views/Favorites.vue'
 import History from '@/views/History.vue'
+import Profile from '@/views/Profile.vue'
+import Settings from '@/views/Settings.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +22,8 @@ const router = createRouter({
         { path: 'search', name: 'search', component: Search },
         { path: 'favorites', name: 'favorites', component: Favorites },
         { path: 'history', name: 'history', component: History },
+        { path: 'profile', name: 'profile', component: Profile },
+        { path: 'settings', name: 'settings', component: Settings },
       ],
     },
   ],
