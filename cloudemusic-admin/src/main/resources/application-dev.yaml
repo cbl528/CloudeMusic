@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+spring:
+  # MySQL
+  datasource:
+    url: jdbc:mysql://localhost:3306/music?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: mysql200528
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6739
+      database: 0
+      timeout: 5000ms
+      password: redis200528
+
+  # Jackson
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+# MyBatis-Plus
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.singularity.cloudemusicadmin.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# MinIO
+minio:
+  endpoint: http://localhost:9000
+  access-key: minio
+  secret-key: minioadmin
+  bucket: cloudemusic
