@@ -11,6 +11,9 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 
+/**
+ * JWT 认证过滤器，拦截 /api/cloude/music/user/* 路径的请求进行 token 校验
+ */
 @Component
 @Order(1)
 public class JwtAuthFilter implements Filter {
@@ -36,18 +39,19 @@ public class JwtAuthFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
         String path = req.getRequestURI();
 
-        // 登录和注册接口放行
+        // 登录和注册接口放行，无需 token
         if (path.equals(LOGIN_PATH) || path.equals(REGISTER_PATH)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 只拦截 /api/cloude/music/user/ 开头的请求
+        // 非 user 路径直接放行
         if (!path.startsWith("/api/cloude/music/user/")) {
             chain.doFilter(request, response);
             return;
         }
 
+        // 提取并校验 token
         String authHeader = req.getHeader(AUTHORIZATION_HEADER);
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(BEARER_PREFIX)) {
             writeJson(res, Result.error(401, "未登录或token缺失"));
@@ -60,12 +64,14 @@ public class JwtAuthFilter implements Filter {
             return;
         }
 
+        // 将用户信息注入请求属性，后续接口可从 request 中获取
         req.setAttribute("userId", jwtUtil.getUserId(token));
         req.setAttribute("username", jwtUtil.getUsername(token));
 
         chain.doFilter(request, response);
     }
 
+    /** 将错误结果以 JSON 形式写回响应 */
     private void writeJson(HttpServletResponse response, Result<?> result) throws IOException {
         response.setContentType("application/json;charset=utf-8");
         response.setStatus(200);

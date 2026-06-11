@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * 密码编码器配置，用于 BCrypt 加密
+ */
 @Configuration
 public class PasswordEncoderConfig {
 

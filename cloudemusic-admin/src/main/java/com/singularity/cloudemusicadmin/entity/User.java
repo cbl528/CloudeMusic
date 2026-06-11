@@ -6,6 +6,9 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * 用户实体，对应数据库 t_user 表
+ */
 @Data
 @TableName("t_user")
 public class User {
@@ -42,7 +45,7 @@ public class User {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
-    @TableLogic
+    @TableLogic  // 逻辑删除，查询时自动过滤 del_flag = 0
     @TableField(select = false)
     private Integer delFlag;
 }

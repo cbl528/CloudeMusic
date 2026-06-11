@@ -6,6 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * MinIO 配置，注入 endpoint/accessKey/secretKey/bucket
+ */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "minio")

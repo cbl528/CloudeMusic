@@ -2,6 +2,9 @@ package com.singularity.cloudemusicadmin.common;
 
 import lombok.Getter;
 
+/**
+ * 响应状态码枚举
+ */
 @Getter
 public enum ResultCode {
 

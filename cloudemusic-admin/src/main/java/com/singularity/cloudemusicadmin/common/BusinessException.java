@@ -2,6 +2,9 @@ package com.singularity.cloudemusicadmin.common;
 
 import lombok.Getter;
 
+/**
+ * 业务异常，全局异常处理器会将其转为统一响应返回
+ */
 @Getter
 public class BusinessException extends RuntimeException {
 
