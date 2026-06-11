@@ -37,8 +37,8 @@ const toplists = [
 
 <style scoped>
 .page-toplist {
-  padding: 24px 32px;
-  max-width: 1100px;
+  padding: 32px 48px;
+  width: 100%;
 }
 
 .page-header {
@@ -57,7 +57,7 @@ const toplists = [
 .toplist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
 .toplist-card {

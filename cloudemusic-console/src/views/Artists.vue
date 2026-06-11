@@ -43,8 +43,8 @@ const artists = Array.from({ length: 24 }, (_, i) => ({
 
 <style scoped>
 .page-artists {
-  padding: 24px 32px;
-  max-width: 1100px;
+  padding: 32px 48px;
+  width: 100%;
 }
 
 .page-header {
@@ -89,7 +89,7 @@ const artists = Array.from({ length: 24 }, (_, i) => ({
 .artist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 24px 16px;
+  gap: 32px 24px;
 }
 
 .artist-card {

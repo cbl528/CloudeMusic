@@ -29,8 +29,8 @@ const timeRanges = ['今天', '昨天', '本周', '更早']
 
 <style scoped>
 .page-history {
-  padding: 24px 32px;
-  max-width: 900px;
+  padding: 32px 48px;
+  width: 100%;
 }
 
 .page-header {

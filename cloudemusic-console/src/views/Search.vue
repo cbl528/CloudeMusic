@@ -61,8 +61,8 @@ const types = [
 
 <style scoped>
 .page-search {
-  padding: 24px 32px;
-  max-width: 800px;
+  padding: 32px 48px;
+  width: 100%;
 }
 
 .page-header {
@@ -82,6 +82,7 @@ const types = [
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
+  max-width: 600px;
 }
 .search-input-wrapper {
   flex: 1;

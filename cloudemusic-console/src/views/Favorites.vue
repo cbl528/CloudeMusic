@@ -33,8 +33,8 @@ const tabs = ['歌曲', '歌单', '专辑', '歌手']
 
 <style scoped>
 .page-favorites {
-  padding: 24px 32px;
-  max-width: 900px;
+  padding: 32px 48px;
+  width: 100%;
 }
 
 .page-header {

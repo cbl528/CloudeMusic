@@ -72,8 +72,8 @@ const playlists = Array.from({ length: 12 }, (_, i) => ({
 
 <style scoped>
 .page-recommend {
-  padding: 24px 32px;
-  max-width: 1100px;
+  padding: 32px 48px;
+  width: 100%;
 }
 
 /* Banner */
@@ -153,8 +153,8 @@ const playlists = Array.from({ length: 12 }, (_, i) => ({
 /* 卡片网格 */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 24px;
 }
 
 .card-cover {
