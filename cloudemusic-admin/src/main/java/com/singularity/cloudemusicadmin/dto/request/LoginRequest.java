@@ -1,4 +1,4 @@
-package com.singularity.cloudemusicadmin.dto;
+package com.singularity.cloudemusicadmin.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
