@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoResponse updateUserInfo(Long userId, UserInfoUpdateRequest request) {
+    public void updateUserInfo(Long userId, UserInfoUpdateRequest request) {
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(404, "用户不存在");
@@ -98,9 +98,10 @@ public class UserServiceImpl implements UserService {
         if (request.getSignature() != null) {
             user.setSignature(request.getSignature());
         }
-
-        userMapper.updateById(user);
-        return toUserInfoResponse(user);
+        int i = userMapper.updateById(user);
+        if (i < 1) {
+            throw new BusinessException(500, "更新用户信息失败");
+        }
     }
 
     @Override
