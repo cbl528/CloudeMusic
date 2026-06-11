@@ -1,0 +1,41 @@
+:root {
+  /* 网易云音乐主题色 */
+  --color-primary: #ec4141;
+  --color-primary-dark: #c20c0c;
+  --color-primary-light: #e66b6b;
+
+  /* 背景色 */
+  --bg-body: #f5f5f5;
+  --bg-sidebar: #fafafa;
+  --bg-content: #fff;
+  --bg-player: #fefefe;
+  --bg-card: #fff;
+
+  /* 文字色 */
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-light: #999;
+  --text-white: #fff;
+  --text-link: #0c73c2;
+
+  /* 边框 */
+  --border-color: #e5e5e5;
+  --border-light: #f0f0f0;
+
+  /* 阴影 */
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-player: 0 -2px 8px rgba(0, 0, 0, 0.08);
+
+  /* 尺寸 */
+  --sidebar-width: 220px;
+  --player-height: 68px;
+  --header-height: 56px;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* 过渡 */
+  --transition: all 0.3s ease;
+}
