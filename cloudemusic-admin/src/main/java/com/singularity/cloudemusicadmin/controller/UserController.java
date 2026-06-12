@@ -34,7 +34,7 @@ public class UserController {
         return Result.success(userService.getUserInfo(userId));
     }
 
-    @PutMapping("/info")
+    @PutMapping("/update")
     public Result<Void> updateUserInfo(@CurrentUserId Long userId,
                                                    @RequestBody UserInfoUpdateRequest body) {
         userService.updateUserInfo(userId, body);

@@ -2,6 +2,7 @@ package com.singularity.cloudemusicadmin.config;
 
 import com.singularity.cloudemusicadmin.common.CurrentUserIdArgumentResolver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -28,11 +29,11 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     /**
-     * CORS 过滤器，优先级高于 JwtAuthFilter，确保预检请求能正常通过
+     * CORS 过滤器，使用 FilterRegistrationBean 确保优先级高于 JwtAuthFilter，
+     * 保证预检请求（OPTIONS）能正确返回 CORS 响应头。
      */
     @Bean
-    @Order(0)
-    public CorsFilter corsFilter() {
+    public FilterRegistrationBean<CorsFilter> corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -42,6 +43,9 @@ public class WebConfig implements WebMvcConfigurer {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
+
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+        bean.setOrder(0);
+        return bean;
     }
 }
