@@ -36,10 +36,9 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public Result<Void> updateUserInfo(@CurrentUserId Long userId,
+    public Result<UserInfoResponse> updateUserInfo(@CurrentUserId Long userId,
                                                    @RequestBody UserInfoUpdateRequest body) {
-        userService.updateUserInfo(userId, body);
-        return Result.success();
+        return Result.success(userService.updateUserInfo(userId, body));
     }
 
     @DeleteMapping("/account")

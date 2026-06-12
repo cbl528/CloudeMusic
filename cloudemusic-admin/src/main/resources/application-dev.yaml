@@ -22,6 +22,10 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
+  servlet:
+    multipart:
+          max-file-size: 5MB
+          max-request-size: 10MB
 
 # JWT
 jwt:
@@ -43,11 +47,6 @@ mybatis-plus:
       logic-not-delete-value: 0
 
 # MinIO
-spring:
-  servlet:
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 10MB
 
 minio:
   endpoint: http://124.221.110.104:9000

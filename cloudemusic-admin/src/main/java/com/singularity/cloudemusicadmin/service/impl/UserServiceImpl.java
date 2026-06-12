@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUserInfo(Long userId, UserInfoUpdateRequest request) {
+    public UserInfoResponse updateUserInfo(Long userId, UserInfoUpdateRequest request) {
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException(404, "用户不存在");
@@ -112,6 +112,7 @@ public class UserServiceImpl implements UserService {
         if (i < 1) {
             throw new BusinessException(500, "更新用户信息失败");
         }
+        return toUserInfoResponse(user);
     }
 
     @Override

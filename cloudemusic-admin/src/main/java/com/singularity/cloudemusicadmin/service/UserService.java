@@ -22,8 +22,8 @@ public interface UserService {
     /** 获取当前用户信息 */
     UserInfoResponse getUserInfo(Long userId);
 
-    /** 更新用户信息 */
-    void updateUserInfo(Long userId, UserInfoUpdateRequest request);
+    /** 更新用户信息，返回更新后的用户数据 */
+    UserInfoResponse updateUserInfo(Long userId, UserInfoUpdateRequest request);
 
     /** 注销账号（逻辑删除） */
     void deleteAccount(Long userId);
