@@ -1,8 +1,11 @@
 package com.singularity.cloudemusicadmin.utils;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +18,8 @@ import java.util.Date;
  */
 @Component
 public class JwtUtil {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
     private final SecretKey key;
     private final long expiration;
@@ -37,10 +42,11 @@ public class JwtUtil {
                 .compact();
     }
 
-    /** 解析 token 的载荷 */
+    /** 解析 token 的载荷，允许 60 秒时钟偏差 */
     public Claims parseToken(String token) {
         return Jwts.parser()
                 .verifyWith(key)
+                .clockSkewSeconds(60)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -61,7 +67,11 @@ public class JwtUtil {
         try {
             parseToken(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            log.warn("token已过期: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
+            log.warn("token验证失败: {} - {}", e.getClass().getSimpleName(), e.getMessage());
             return false;
         }
     }

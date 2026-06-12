@@ -5,6 +5,7 @@ import com.singularity.cloudemusicadmin.common.Result;
 import com.singularity.cloudemusicadmin.dto.request.LoginRequest;
 import com.singularity.cloudemusicadmin.dto.request.RegisterRequest;
 import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
+import com.singularity.cloudemusicadmin.dto.response.LoginResponse;
 import com.singularity.cloudemusicadmin.dto.response.UserInfoResponse;
 import com.singularity.cloudemusicadmin.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +19,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public Result<String> login(@RequestBody LoginRequest request) {
-        String token = userService.login(request);
-        return Result.success(token);
+    public Result<LoginResponse> login(@RequestBody LoginRequest request) {
+        return Result.success(userService.login(request));
     }
 
     @PostMapping("/register")

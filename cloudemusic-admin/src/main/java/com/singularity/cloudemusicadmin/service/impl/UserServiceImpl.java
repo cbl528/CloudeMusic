@@ -5,6 +5,7 @@ import com.singularity.cloudemusicadmin.common.BusinessException;
 import com.singularity.cloudemusicadmin.dto.request.LoginRequest;
 import com.singularity.cloudemusicadmin.dto.request.RegisterRequest;
 import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
+import com.singularity.cloudemusicadmin.dto.response.LoginResponse;
 import com.singularity.cloudemusicadmin.dto.response.UserInfoResponse;
 import com.singularity.cloudemusicadmin.entity.User;
 import com.singularity.cloudemusicadmin.mapper.UserMapper;
@@ -26,7 +27,7 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
 
     @Override
-    public String login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         // 根据用户名查询用户
         User user = userMapper.selectOne(
                 Wrappers.<User>lambdaQuery().eq(User::getUsername, request.getUsername()));
@@ -46,7 +47,13 @@ public class UserServiceImpl implements UserService {
         }
 
         // 生成并返回 JWT token
-        return jwtUtil.generateToken(user.getId(), user.getUsername());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+
+        LoginResponse build = LoginResponse.builder()
+                .token(token)
+                .build();
+
+        return build;
     }
 
     @Override

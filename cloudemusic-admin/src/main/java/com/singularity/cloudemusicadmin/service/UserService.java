@@ -3,6 +3,7 @@ package com.singularity.cloudemusicadmin.service;
 import com.singularity.cloudemusicadmin.dto.request.LoginRequest;
 import com.singularity.cloudemusicadmin.dto.request.RegisterRequest;
 import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
+import com.singularity.cloudemusicadmin.dto.response.LoginResponse;
 import com.singularity.cloudemusicadmin.dto.response.UserInfoResponse;
 import com.singularity.cloudemusicadmin.entity.User;
 
@@ -12,7 +13,7 @@ import com.singularity.cloudemusicadmin.entity.User;
 public interface UserService {
 
     /** 登录，返回 JWT token */
-    String login(LoginRequest request);
+    LoginResponse login(LoginRequest request);
 
     /** 注册，返回用户信息 */
     User register(RegisterRequest request);
