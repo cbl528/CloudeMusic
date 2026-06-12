@@ -1,12 +1,16 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { getUserInfo, updateUserInfo, deleteAccount } from '@/api/user'
+import { updateUserInfo, deleteAccount } from '@/api/user'
 import { useToast } from '@/composables/useToast'
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter()
 const toast = useToast()
+const userStore = useUserStore()
+const { userInfo, loaded } = storeToRefs(userStore)
 
 const loading = ref(true)
 const saving = ref(false)
@@ -20,9 +24,25 @@ const editForm = ref({
 
 const avatarPreview = ref('')
 
-onMounted(async () => {
+// 当 store 中数据加载完毕时填充表单
+watch([userInfo, loaded], ([info, isLoaded]) => {
+  if (info && isLoaded) {
+    user.value = info
+    editForm.value.nickname = info.nickname || ''
+    editForm.value.signature = info.signature || ''
+    editForm.value.avatar = info.avatar || ''
+    avatarPreview.value = info.avatar || ''
+    loading.value = false
+  } else if (isLoaded && !info) {
+    // 已加载但无数据（未登录），重新请求
+    loadUserInfo()
+  }
+}, { immediate: true })
+
+async function loadUserInfo() {
+  loading.value = true
   try {
-    const data = await getUserInfo()
+    const data = await userStore.fetchUserInfo()
     user.value = data
     editForm.value.nickname = data.nickname || ''
     editForm.value.signature = data.signature || ''
@@ -33,7 +53,7 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
 
 const hasChanges = computed(() => {
   if (!user.value) return false

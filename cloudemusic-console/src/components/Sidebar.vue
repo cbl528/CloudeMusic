@@ -4,18 +4,18 @@ import { useRouter, useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import LoginModal from './LoginModal.vue'
 import { useToast } from '@/composables/useToast'
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
+const userStore = useUserStore()
 
-const isLoggedIn = ref(false)
-const user = ref({
-  nickname: '',
-  avatar: '',
-})
+// ✅ 通过 storeToRefs 保持响应式连接
+const { isLoggedIn, nickname, avatar } = storeToRefs(userStore)
+
 const showLoginModal = ref(false)
-
 const showDropdown = ref(false)
 const userSectionRef = ref(null)
 
@@ -69,21 +69,12 @@ function toggleDropdown() {
 function handleAction(action) {
   showDropdown.value = false
   if (action === 'logout') {
-    isLoggedIn.value = false
-    user.value = { nickname: '', avatar: '' }
-    localStorage.removeItem('token')
-    localStorage.removeItem('saved_credentials')
+    userStore.logout()
     toast.success('已退出登录')
     router.push('/')
   } else if (action === 'login') {
     showLoginModal.value = true
   }
-}
-
-function onLoginSuccess(data) {
-  isLoggedIn.value = true
-  user.value = { nickname: data.nickname, avatar: '' }
-  showLoginModal.value = false
 }
 </script>
 
@@ -120,7 +111,7 @@ function onLoginSuccess(data) {
       <!-- 已登录 -->
       <div v-else class="user-card" @click="toggleDropdown">
         <div class="user-avatar">
-          <span class="avatar-text">{{ user.nickname.charAt(0) }}</span>
+          <span class="avatar-text">{{ nickname.charAt(0) }}</span>
         </div>
         <div class="user-info">
           <p class="user-name">{{ user.nickname }}</p>
@@ -153,7 +144,6 @@ function onLoginSuccess(data) {
     <LoginModal
       :visible="showLoginModal"
       @close="showLoginModal = false"
-      @login-success="onLoginSuccess"
     />
   </aside>
 </template>

@@ -3,8 +3,10 @@ import { ref, watch, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { login, register } from '@/api/user'
 import { useToast } from '@/composables/useToast'
+import { useUserStore } from '@/stores/user'
 
 const toast = useToast()
+const userStore = useUserStore()
 
 const props = defineProps({
   visible: Boolean,
@@ -83,11 +85,12 @@ async function handleLogin() {
   }
   loading.value = true
   try {
-    const token = await login({
+    const result = await login({
       username: loginForm.value.username,
       password: loginForm.value.password,
     })
-    localStorage.setItem('token', token)
+    // result = { token: "eyJ..." } 响应拦截器解包 data 后的对象
+    await userStore.loginSuccess(result.token)
 
     if (loginForm.value.remember) {
       localStorage.setItem('saved_credentials', JSON.stringify({
@@ -99,7 +102,6 @@ async function handleLogin() {
     }
 
     toast.success('登录成功')
-    emit('login-success', { nickname: loginForm.value.username })
     close()
   } catch (e) {
     errorMsg.value = e.message || '登录失败'
