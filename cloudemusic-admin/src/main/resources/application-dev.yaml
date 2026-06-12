@@ -54,3 +54,8 @@ minio:
   secret-key: minioadmin
   bucket: cloudemusic
   avatar-bucket: user-avatar
+
+# 网易云 Node API 服务（同一台服务器，本地调用）
+netease:
+  api:
+    base-url: http://127.0.0.1:3000
