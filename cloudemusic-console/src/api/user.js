@@ -31,7 +31,7 @@ export function getUserInfo() {
 /** 更新用户信息（昵称/头像/个性签名） */
 export function updateUserInfo(data) {
   return request({
-    url: `${BASE_URL}/info`,
+    url: `${BASE_URL}/update`,
     method: 'put',
     data,
   })
