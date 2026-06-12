@@ -55,3 +55,12 @@ export function uploadAvatar(file) {
     data: formData,
   })
 }
+
+/** 修改密码 */
+export function changePassword(data) {
+  return request({
+    url: `${BASE_URL}/password`,
+    method: 'put',
+    data,
+  })
+}

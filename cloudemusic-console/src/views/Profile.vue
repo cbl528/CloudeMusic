@@ -5,6 +5,7 @@ import { Icon } from '@iconify/vue'
 import { updateUserInfo, deleteAccount, uploadAvatar } from '@/api/user'
 import { useToast } from '@/composables/useToast'
 import { useUserStore } from '@/stores/user'
+import ChangePasswordModal from '@/components/ChangePasswordModal.vue'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()
@@ -17,6 +18,8 @@ const saving = ref(false)
 const uploading = ref(false)
 const user = ref(null)
 const fileInput = ref(null)
+
+const showPwdModal = ref(false)
 
 const editForm = ref({
   nickname: '',
@@ -297,6 +300,13 @@ function formatPhone(phone) {
             </div>
             <button class="btn-outline" @click="doLogout">退出登录</button>
           </div>
+          <div class="account-row">
+            <div class="account-row-info">
+              <Icon icon="mdi:lock-outline" width="16" height="16" />
+              <span>修改密码</span>
+            </div>
+            <button class="btn-outline" @click="showPwdModal = true">修改密码</button>
+          </div>
           <div class="account-row account-row-danger">
             <div class="account-row-info">
               <Icon icon="mdi:alert-circle-outline" width="16" height="16" />
@@ -308,6 +318,12 @@ function formatPhone(phone) {
         </div>
       </div>
     </div>
+
+    <!-- 修改密码弹窗 -->
+    <ChangePasswordModal
+      :visible="showPwdModal"
+      @close="showPwdModal = false"
+    />
   </div>
 </template>
 
