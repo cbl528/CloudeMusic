@@ -9,11 +9,13 @@ import com.singularity.cloudemusicadmin.dto.response.LoginResponse;
 import com.singularity.cloudemusicadmin.dto.response.UserInfoResponse;
 import com.singularity.cloudemusicadmin.entity.User;
 import com.singularity.cloudemusicadmin.mapper.UserMapper;
+import com.singularity.cloudemusicadmin.service.MinioService;
 import com.singularity.cloudemusicadmin.service.UserService;
 import com.singularity.cloudemusicadmin.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户业务实现
@@ -25,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final MinioService minioService;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -118,6 +121,23 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(404, "用户不存在");
         }
         userMapper.deleteById(userId);
+    }
+
+    @Override
+    public UserInfoResponse uploadAvatar(Long userId, MultipartFile file) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        // 上传到 MinIO
+        String avatarUrl = minioService.uploadAvatar(file, userId);
+
+        // 更新用户 avatar 字段
+        user.setAvatar(avatarUrl);
+        userMapper.updateById(user);
+
+        return toUserInfoResponse(user);
     }
 
     /** 将 User 实体转换为安全的响应 DTO */

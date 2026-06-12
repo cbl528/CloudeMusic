@@ -10,6 +10,7 @@ import com.singularity.cloudemusicadmin.dto.response.UserInfoResponse;
 import com.singularity.cloudemusicadmin.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/cloude/music/user")
@@ -45,5 +46,11 @@ public class UserController {
     public Result<Void> deleteAccount(@CurrentUserId Long userId) {
         userService.deleteAccount(userId);
         return Result.success();
+    }
+
+    @PostMapping("/avatar/upload")
+    public Result<UserInfoResponse> uploadAvatar(@CurrentUserId Long userId,
+                                                  @RequestParam("file") MultipartFile file) {
+        return Result.success(userService.uploadAvatar(userId, file));
     }
 }

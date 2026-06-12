@@ -43,8 +43,15 @@ mybatis-plus:
       logic-not-delete-value: 0
 
 # MinIO
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
 minio:
   endpoint: http://124.221.110.104:9000
   access-key: minio
   secret-key: minioadmin
   bucket: cloudemusic
+  avatar-bucket: user-avatar

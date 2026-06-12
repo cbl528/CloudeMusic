@@ -23,7 +23,7 @@ public class Result<T> {
 
     /** 成功，无数据 */
     public static <T> Result<T> success() {
-        return success(null);
+        return new Result<>(200, null, "操作成功");
     }
 
     /** 成功，自定义消息 */

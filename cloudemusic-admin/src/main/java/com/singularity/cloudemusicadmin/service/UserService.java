@@ -6,6 +6,7 @@ import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
 import com.singularity.cloudemusicadmin.dto.response.LoginResponse;
 import com.singularity.cloudemusicadmin.dto.response.UserInfoResponse;
 import com.singularity.cloudemusicadmin.entity.User;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户业务接口
@@ -26,4 +27,7 @@ public interface UserService {
 
     /** 注销账号（逻辑删除） */
     void deleteAccount(Long userId);
+
+    /** 上传头像到 MinIO 并更新用户 avatar 字段 */
+    UserInfoResponse uploadAvatar(Long userId, MultipartFile file);
 }
