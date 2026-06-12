@@ -111,7 +111,8 @@ function handleAction(action) {
       <!-- 已登录 -->
       <div v-else class="user-card" @click="toggleDropdown">
         <div class="user-avatar">
-          <span class="avatar-text">{{ nickname.charAt(0) }}</span>
+          <img v-if="avatar" :src="avatar" class="avatar-img" alt="avatar" />
+          <span v-else class="avatar-text">{{ nickname.charAt(0) }}</span>
         </div>
         <div class="user-info">
           <p class="user-name">{{ nickname }}</p>
@@ -280,6 +281,7 @@ function handleAction(action) {
   justify-content: center;
   flex-shrink: 0;
   font-size: 16px;
+  overflow: hidden;
 }
 .user-avatar-placeholder {
   background: #e0e0e0;
@@ -290,6 +292,11 @@ function handleAction(action) {
   color: var(--text-white);
   font-weight: 600;
   font-size: 14px;
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-info {
