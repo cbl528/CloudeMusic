@@ -2,6 +2,7 @@ package com.singularity.cloudemusicadmin.controller;
 
 import com.singularity.cloudemusicadmin.common.CurrentUserId;
 import com.singularity.cloudemusicadmin.common.Result;
+import com.singularity.cloudemusicadmin.dto.request.ChangePasswordRequest;
 import com.singularity.cloudemusicadmin.dto.request.LoginRequest;
 import com.singularity.cloudemusicadmin.dto.request.RegisterRequest;
 import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
@@ -51,5 +52,12 @@ public class UserController {
     public Result<UserInfoResponse> uploadAvatar(@CurrentUserId Long userId,
                                                   @RequestParam("file") MultipartFile file) {
         return Result.success(userService.uploadAvatar(userId, file));
+    }
+
+    @PutMapping("/password")
+    public Result<Void> changePassword(@CurrentUserId Long userId,
+                                       @RequestBody ChangePasswordRequest body) {
+        userService.changePassword(userId, body);
+        return Result.success();
     }
 }

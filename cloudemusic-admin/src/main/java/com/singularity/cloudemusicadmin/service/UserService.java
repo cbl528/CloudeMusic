@@ -1,5 +1,6 @@
 package com.singularity.cloudemusicadmin.service;
 
+import com.singularity.cloudemusicadmin.dto.request.ChangePasswordRequest;
 import com.singularity.cloudemusicadmin.dto.request.LoginRequest;
 import com.singularity.cloudemusicadmin.dto.request.RegisterRequest;
 import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
@@ -30,4 +31,7 @@ public interface UserService {
 
     /** 上传头像到 MinIO 并更新用户 avatar 字段 */
     UserInfoResponse uploadAvatar(Long userId, MultipartFile file);
+
+    /** 修改密码 */
+    void changePassword(Long userId, ChangePasswordRequest request);
 }

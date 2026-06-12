@@ -2,6 +2,7 @@ package com.singularity.cloudemusicadmin.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.singularity.cloudemusicadmin.common.BusinessException;
+import com.singularity.cloudemusicadmin.dto.request.ChangePasswordRequest;
 import com.singularity.cloudemusicadmin.dto.request.LoginRequest;
 import com.singularity.cloudemusicadmin.dto.request.RegisterRequest;
 import com.singularity.cloudemusicadmin.dto.request.UserInfoUpdateRequest;
@@ -139,6 +140,23 @@ public class UserServiceImpl implements UserService {
         userMapper.updateById(user);
 
         return toUserInfoResponse(user);
+    }
+
+    @Override
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        // 校验旧密码
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BusinessException(400, "原密码错误");
+        }
+
+        // 更新密码
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userMapper.updateById(user);
     }
 
     /** 将 User 实体转换为安全的响应 DTO */
