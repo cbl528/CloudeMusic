@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { updateUserInfo, deleteAccount } from '@/api/user'
+import { updateUserInfo, deleteAccount, uploadAvatar } from '@/api/user'
 import { useToast } from '@/composables/useToast'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
@@ -14,7 +14,9 @@ const { userInfo, loaded } = storeToRefs(userStore)
 
 const loading = ref(true)
 const saving = ref(false)
+const uploading = ref(false)
 const user = ref(null)
+const fileInput = ref(null)
 
 const editForm = ref({
   nickname: '',
@@ -65,10 +67,36 @@ const hasChanges = computed(() => {
 })
 
 function changeAvatar() {
-  const url = prompt('请输入头像图片链接', editForm.value.avatar || '')
-  if (url !== null) {
-    editForm.value.avatar = url.trim()
-    avatarPreview.value = url.trim()
+  fileInput.value?.click()
+}
+
+async function handleAvatarChange(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  // 前端快速预览
+  const reader = new FileReader()
+  reader.onload = (ev) => { avatarPreview.value = ev.target?.result || '' }
+  reader.readAsDataURL(file)
+
+  uploading.value = true
+  try {
+    const data = await uploadAvatar(file)
+    // 更新 store —— 侧边栏立即响应
+    userStore.userInfo = data
+    // 更新本地表单
+    user.value = data
+    editForm.value.avatar = data.avatar || ''
+    avatarPreview.value = data.avatar || ''
+    toast.success('头像已更新')
+  } catch (e) {
+    toast.error(e.message || '头像上传失败')
+    // 恢复原来的头像预览
+    avatarPreview.value = user.value?.avatar || ''
+  } finally {
+    uploading.value = false
+    // 清空 input 以便再次选择同一文件
+    e.target.value = ''
   }
 }
 
@@ -82,6 +110,7 @@ async function handleSave() {
       avatar: editForm.value.avatar,
     })
     user.value = data
+    userStore.userInfo = data
     toast.success('保存成功')
   } catch (e) {
     toast.error(e.message || '保存失败')
@@ -146,9 +175,17 @@ function formatPhone(phone) {
             <Icon icon="mdi:account" width="44" height="44" />
           </div>
           <div class="header-avatar-overlay">
-            <Icon icon="mdi:camera" width="20" height="20" />
+            <Icon v-if="uploading" icon="mdi:loading" width="20" height="20" class="spin" />
+            <Icon v-else icon="mdi:camera" width="20" height="20" />
           </div>
         </div>
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          style="display:none"
+          @change="handleAvatarChange"
+        />
         <div class="header-info">
           <div class="header-nickname">
             {{ user?.nickname || user?.username }}

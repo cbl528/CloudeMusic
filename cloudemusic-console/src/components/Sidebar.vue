@@ -114,7 +114,7 @@ function handleAction(action) {
           <span class="avatar-text">{{ nickname.charAt(0) }}</span>
         </div>
         <div class="user-info">
-          <p class="user-name">{{ user.nickname }}</p>
+          <p class="user-name">{{ nickname }}</p>
           <p class="user-desc">查看个人主页</p>
         </div>
         <span class="arrow" :class="{ open: showDropdown }">▾</span>

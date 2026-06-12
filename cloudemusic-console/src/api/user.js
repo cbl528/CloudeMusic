@@ -44,3 +44,14 @@ export function deleteAccount() {
     method: 'delete',
   })
 }
+
+/** 上传头像文件到 MinIO，返回完整用户信息 */
+export function uploadAvatar(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: `${BASE_URL}/avatar/upload`,
+    method: 'post',
+    data: formData,
+  })
+}
