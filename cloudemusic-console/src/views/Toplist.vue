@@ -1,37 +1,73 @@
 <script setup>
-const toplists = [
-  { id: 1, name: '飙升榜', desc: '实时更新，热门飙升' },
-  { id: 2, name: '热歌榜', desc: '最热歌曲排行榜' },
-  { id: 3, name: '新歌榜', desc: '最新发布的歌曲' },
-  { id: 4, name: '原创榜', desc: '原创音乐排行榜' },
-  { id: 5, name: '欧美榜', desc: '欧美热门歌曲' },
-  { id: 6, name: '华语榜', desc: '华语热门歌曲' },
-]
+import { ref, onMounted } from 'vue'
+import { getToplist, getPlaylistDetail } from '@/api/toplist'
+
+const toplists = ref([])
+const loading = ref(true)
+
+onMounted(async () => {
+  try {
+    const res = await getToplist()
+    const list = res.list || []
+
+    // 给每个榜单加载前 3 首歌曲
+    const details = await Promise.allSettled(
+      list.slice(0, 6).map(tl => getPlaylistDetail(tl.id))
+    )
+
+    toplists.value = list.slice(0, 6).map((tl, i) => {
+      const detail = details[i]
+      const tracks = detail.status === 'fulfilled'
+        ? (detail.value.playlist?.tracks || []).slice(0, 3)
+        : []
+      return { ...tl, tracks }
+    })
+  } catch (e) {
+    console.error('获取排行榜数据失败', e)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>
   <div class="page-toplist">
-    <div class="page-header">
-      <h2>排行榜</h2>
-      <p class="page-desc">各类音乐排行榜，发现热门好音乐</p>
+    <div v-if="loading" class="loading-state">
+      <span>加载中...</span>
     </div>
 
-    <div class="toplist-grid">
-      <div v-for="tl in toplists" :key="tl.id" class="toplist-card">
-        <div class="toplist-cover">
-          <div class="toplist-rank">{{ tl.id }}</div>
-        </div>
-        <div class="toplist-info">
-          <h3 class="toplist-name">{{ tl.name }}</h3>
-          <p class="toplist-desc">{{ tl.desc }}</p>
-          <div class="toplist-songs">
-            <p v-for="i in 3" :key="i" class="toplist-song">
-              {{ i }}. 歌曲示例 {{ i }} — 歌手名
-            </p>
+    <template v-else>
+      <div class="page-header">
+        <h2>排行榜</h2>
+        <p class="page-desc">各类音乐排行榜，发现热门好音乐</p>
+      </div>
+
+      <div class="toplist-grid">
+        <div v-for="tl in toplists" :key="tl.id" class="toplist-card">
+          <div class="toplist-cover">
+            <img
+              v-if="tl.coverImgUrl"
+              :src="tl.coverImgUrl"
+              :alt="tl.name"
+              class="toplist-img"
+            />
+            <div v-else class="toplist-rank-placeholder">
+              {{ toplists.indexOf(tl) + 1 }}
+            </div>
+          </div>
+          <div class="toplist-info">
+            <h3 class="toplist-name">{{ tl.name }}</h3>
+            <p class="toplist-desc">{{ tl.description }}</p>
+            <div class="toplist-songs">
+              <p v-for="(song, i) in tl.tracks" :key="song.id" class="toplist-song">
+                {{ i + 1 }}. {{ song.name }} — {{ song.ar?.[0]?.name || '未知' }}
+              </p>
+              <p v-if="!tl.tracks.length" class="toplist-song empty">暂无歌曲</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -39,6 +75,15 @@ const toplists = [
 .page-toplist {
   padding: 32px 48px;
   width: 100%;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  color: var(--text-light);
+  font-size: 14px;
 }
 
 .page-header {
@@ -79,13 +124,21 @@ const toplists = [
   width: 100px;
   height: 100px;
   border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
   background: linear-gradient(135deg, var(--color-primary), #ff7e7e);
+}
+.toplist-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.toplist-rank-placeholder {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-.toplist-rank {
   font-size: 36px;
   font-weight: 700;
   color: var(--text-white);
@@ -105,6 +158,9 @@ const toplists = [
   font-size: 12px;
   color: var(--text-light);
   margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .toplist-songs {
   display: flex;
@@ -117,5 +173,9 @@ const toplists = [
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.toplist-song.empty {
+  color: var(--text-light);
+  font-style: italic;
 }
 </style>

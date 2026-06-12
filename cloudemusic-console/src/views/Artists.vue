@@ -1,11 +1,47 @@
 <script setup>
-const categories = ['华语', '欧美', '日本', '韩国', '其他']
+import { ref, onMounted, watch } from 'vue'
+import { getTopArtists, getArtistList } from '@/api/artist'
 
-const artists = Array.from({ length: 24 }, (_, i) => ({
-  id: i + 1,
-  name: `热门歌手 ${i + 1}`,
-  desc: '知名音乐人',
-}))
+const categories = [
+  { label: '华语', cat: 1001 },
+  { label: '欧美', cat: 2001 },
+  { label: '日本', cat: 6001 },
+  { label: '韩国', cat: 7001 },
+  { label: '其他', cat: 4001 },
+]
+
+const activeCat = ref('华语')
+const artists = ref([])
+const loading = ref(true)
+
+async function fetchArtists(catLabel) {
+  loading.value = true
+  try {
+    const cat = categories.find(c => c.label === catLabel)
+    if (catLabel === '华语' && cat) {
+      // 默认使用热门歌手
+      const res = await getTopArtists(24)
+      artists.value = res.artists || []
+    } else if (cat) {
+      const res = await getArtistList(cat.cat, 24)
+      artists.value = res.artists || []
+    } else {
+      const res = await getTopArtists(24)
+      artists.value = res.artists || []
+    }
+  } catch (e) {
+    console.error('获取歌手列表失败', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+function switchCategory(cat) {
+  activeCat.value = cat
+  fetchArtists(cat)
+}
+
+onMounted(() => fetchArtists('华语'))
 </script>
 
 <template>
@@ -19,25 +55,36 @@ const artists = Array.from({ length: 24 }, (_, i) => ({
     <div class="categories">
       <span
         v-for="cat in categories"
-        :key="cat"
+        :key="cat.label"
         class="category-tag"
-        :class="{ active: cat === '华语' }"
+        :class="{ active: activeCat === cat.label }"
+        @click="switchCategory(cat.label)"
       >
-        {{ cat }}
+        {{ cat.label }}
       </span>
     </div>
 
+    <!-- 加载中 -->
+    <div v-if="loading" class="loading-state">加载中...</div>
+
     <!-- 歌手列表 -->
-    <div class="artist-grid">
+    <div v-else-if="artists.length" class="artist-grid">
       <div v-for="artist in artists" :key="artist.id" class="artist-card">
         <div class="artist-avatar">
-          <div class="avatar-placeholder">{{ artist.name.charAt(0) }}</div>
+          <img
+            v-if="artist.img1v1Url"
+            :src="artist.img1v1Url"
+            :alt="artist.name"
+            class="artist-img"
+          />
+          <div v-else class="avatar-placeholder">{{ artist.name.charAt(0) }}</div>
           <div class="artist-play-overlay">▶</div>
         </div>
         <p class="artist-name">{{ artist.name }}</p>
-        <p class="artist-desc">{{ artist.desc }}</p>
+        <p class="artist-desc">{{ artist.albumSize || 0 }} 张专辑</p>
       </div>
     </div>
+    <div v-else class="empty-tip">暂无歌手数据</div>
   </div>
 </template>
 
@@ -45,6 +92,13 @@ const artists = Array.from({ length: 24 }, (_, i) => ({
 .page-artists {
   padding: 32px 48px;
   width: 100%;
+}
+
+.loading-state, .empty-tip {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--text-light);
+  font-size: 14px;
 }
 
 .page-header {
@@ -109,6 +163,13 @@ const artists = Array.from({ length: 24 }, (_, i) => ({
   overflow: hidden;
   margin: 0 auto 10px;
 }
+
+.artist-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .avatar-placeholder {
   width: 100%;
   height: 100%;

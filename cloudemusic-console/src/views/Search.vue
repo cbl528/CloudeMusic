@@ -1,13 +1,68 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { search, searchHot } from '@/api/search'
 
 const keyword = ref('')
 const searchType = ref('song')
+const loading = ref(false)
+const searched = ref(false)
+const results = ref([])
+const total = ref(0)
+const hotTags = ref([])
+
+const typeMap = { song: 1, artist: 100, album: 10 }
 const types = [
   { key: 'song', label: '歌曲' },
   { key: 'artist', label: '歌手' },
   { key: 'album', label: '专辑' },
 ]
+
+onMounted(async () => {
+  try {
+    const res = await searchHot()
+    hotTags.value = res.result?.hots || []
+  } catch (_) {}
+})
+
+async function doSearch() {
+  const kw = keyword.value.trim()
+  if (!kw) return
+
+  loading.value = true
+  searched.value = true
+  try {
+    const type = typeMap[searchType.value] || 1
+    const res = await search(kw, type)
+    // 搜索返回的结果字段取决于 type
+    if (res.result?.songs) results.value = res.result.songs
+    else if (res.result?.artists) results.value = res.result.artists
+    else if (res.result?.albums) results.value = res.result.albums
+    else results.value = []
+    total.value = res.result?.songCount || results.value.length
+  } catch (e) {
+    console.error('搜索失败', e)
+    results.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+function onKeydown(e) {
+  if (e.key === 'Enter') doSearch()
+}
+
+function onHotTagClick(kw) {
+  keyword.value = kw
+  doSearch()
+}
+
+function formatDuration(dt) {
+  if (!dt) return ''
+  const totalSeconds = Math.floor(dt / 1000)
+  const min = Math.floor(totalSeconds / 60)
+  const sec = totalSeconds % 60
+  return `${min}:${String(sec).padStart(2, '0')}`
+}
 </script>
 
 <template>
@@ -26,10 +81,13 @@ const types = [
           type="text"
           class="search-input"
           placeholder="输入关键词搜索..."
+          @keydown="onKeydown"
         />
         <button v-if="keyword" class="search-clear" @click="keyword = ''">✕</button>
       </div>
-      <button class="search-btn">搜索</button>
+      <button class="search-btn" :disabled="loading" @click="doSearch">
+        {{ loading ? '搜索中...' : '搜索' }}
+      </button>
     </div>
 
     <!-- 搜索类型 -->
@@ -45,15 +103,70 @@ const types = [
       </span>
     </div>
 
-    <!-- 搜索提示 -->
-    <div class="search-placeholder">
+    <!-- 加载中 -->
+    <div v-if="loading" class="search-placeholder">搜索中...</div>
+
+    <!-- 搜索结果 -->
+    <div v-else-if="searched && results.length" class="search-results">
+      <!-- 歌曲列表模式 -->
+      <template v-if="searchType === 'song'">
+        <div class="result-table-header">
+          <span class="col-index">#</span>
+          <span class="col-name">音乐标题</span>
+          <span class="col-artist">歌手</span>
+          <span class="col-album">专辑</span>
+          <span class="col-duration">时长</span>
+        </div>
+        <div
+          v-for="(song, i) in results"
+          :key="song.id"
+          class="result-row"
+        >
+          <span class="col-index">{{ i + 1 }}</span>
+          <span class="col-name">{{ song.name }}</span>
+          <span class="col-artist">{{ song.artists?.[0]?.name || '未知' }}</span>
+          <span class="col-album">{{ song.album?.name || '未知' }}</span>
+          <span class="col-duration">{{ formatDuration(song.duration) }}</span>
+        </div>
+      </template>
+
+      <!-- 歌手/专辑网格模式 -->
+      <template v-else>
+        <div class="artist-grid">
+          <div v-for="item in results" :key="item.id" class="grid-card">
+            <div class="grid-cover">
+              <img
+                v-if="item.img1v1Url || item.picUrl"
+                :src="item.img1v1Url || item.picUrl"
+                :alt="item.name"
+                class="grid-img"
+              />
+              <div v-else class="grid-placeholder">{{ item.name.charAt(0) }}</div>
+            </div>
+            <p class="grid-name">{{ item.name }}</p>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- 无结果 -->
+    <div v-else-if="searched && !results.length" class="search-placeholder">
+      未找到"{{ keyword }}"的相关结果
+    </div>
+
+    <!-- 默认占位 -->
+    <div v-else class="search-placeholder">
       <p>请输入关键词搜索音乐</p>
-      <div class="hot-tags">
-        <span class="hot-tag">热门搜索</span>
-        <span class="hot-tag">周杰伦</span>
-        <span class="hot-tag">林俊杰</span>
-        <span class="hot-tag">陈奕迅</span>
-        <span class="hot-tag">邓紫棋</span>
+      <div v-if="hotTags.length" class="hot-tags">
+        <span class="hot-tag label">热门搜索</span>
+        <span
+          v-for="tag in hotTags"
+          :key="tag.first"
+          class="hot-tag"
+          @click="onHotTagClick(tag.first)"
+        >
+          {{ tag.first }}
+        </span>
       </div>
     </div>
   </div>
@@ -129,9 +242,14 @@ const types = [
   font-size: 15px;
   cursor: pointer;
   transition: var(--transition);
+  white-space: nowrap;
 }
 .search-btn:hover {
   background: var(--color-primary-dark);
+}
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .search-types {
@@ -180,11 +298,84 @@ const types = [
   cursor: pointer;
   transition: var(--transition);
 }
-.hot-tag:first-child {
+.hot-tag.label {
   background: var(--color-primary);
   color: var(--text-white);
+  cursor: default;
 }
-.hot-tag:hover {
+.hot-tag:hover:not(.label) {
   color: var(--color-primary);
+}
+
+/* 搜索结果 - 表格 */
+.result-table-header {
+  display: flex;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text-light);
+  border-bottom: 1px solid var(--border-color);
+}
+.result-row {
+  display: flex;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
+  transition: var(--transition);
+  cursor: pointer;
+}
+.result-row:hover {
+  background: var(--bg-hover);
+}
+.col-index { width: 40px; }
+.col-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-artist { width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-album { width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-duration { width: 60px; text-align: right; }
+
+/* 网格结果 */
+.artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 32px 24px;
+}
+.grid-card {
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.grid-card:hover {
+  transform: translateY(-4px);
+}
+.grid-cover {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 10px;
+  background: linear-gradient(135deg, #e8e8e8, #d0d0d0);
+}
+.grid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.grid-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #bbb;
+  font-weight: 700;
+}
+.grid-name {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
