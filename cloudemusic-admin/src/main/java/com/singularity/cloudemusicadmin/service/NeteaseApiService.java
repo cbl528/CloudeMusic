@@ -148,6 +148,14 @@ public class NeteaseApiService {
         return callApi(uri);
     }
 
+    /** 专辑详情（含歌曲列表） */
+    public JsonNode album(long id) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/album")
+                .queryParam("id", id)
+                .build().encode().toUri();
+        return callApi(uri);
+    }
+
     /** 统一调用入口：检查 code 并返回完整响应体 */
     private JsonNode callApi(String url) {
         return callApi(URI.create(url));

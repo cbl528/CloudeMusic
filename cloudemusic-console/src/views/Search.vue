@@ -176,7 +176,12 @@ function formatDuration(dt) {
       <!-- 专辑网格 -->
       <template v-else>
         <div class="album-grid">
-          <div v-for="item in results" :key="item.id" class="album-card">
+          <div
+            v-for="item in results"
+            :key="item.id"
+            class="album-card"
+            @click="router.push('/album/' + item.id)"
+          >
             <div class="album-cover">
               <img
                 v-if="item.picUrl || item.artist?.img1v1Url"

@@ -105,4 +105,9 @@ public class NeteaseController {
     public Result<JsonNode> artistDesc(@RequestParam long id) {
         return Result.success(neteaseApiService.artistDesc(id));
     }
+
+    @GetMapping("/album")
+    public Result<JsonNode> album(@RequestParam long id) {
+        return Result.success(neteaseApiService.album(id));
+    }
 }
