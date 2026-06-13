@@ -157,7 +157,7 @@ onMounted(async () => {
             v-for="album in albums"
             :key="album.id"
             class="album-card"
-            @click="router.push(`/playlist/${album.id}`)"
+            @click="router.push(`/album/${album.id}`)"
           >
             <div class="album-cover">
               <img v-if="album.picUrl" :src="album.picUrl + '?param=160y160'" :alt="album.name" class="album-img" />
