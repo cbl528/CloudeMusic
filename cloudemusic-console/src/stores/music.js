@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { getSongUrl, getSongDetail } from '@/api/song'
+import { addHistory } from '@/api/user'
 
 function normalizeSong(s) {
   if (!s) return null
@@ -149,6 +150,8 @@ export const useMusicStore = defineStore('music', () => {
         const el = getAudio()
         el.src = item.url
         await el.play()
+        // 记录播放历史（已登录时）
+        recordHistory(song)
       } else {
         errorMsg.value = '该歌曲暂无播放源'
         playing.value = false
@@ -245,6 +248,19 @@ export const useMusicStore = defineStore('music', () => {
     volume.value = val
     localStorage.setItem('volume', val)
     if (audio) audio.volume = val
+  }
+
+  /** 记录播放历史（静默，失败不影响播放） */
+  function recordHistory(song) {
+    if (!localStorage.getItem('token')) return
+    const artists = song.artists || []
+    addHistory({
+      songId: song.id,
+      songName: song.name || '',
+      artist: artists.map(a => a.name || a).join(' / '),
+      cover: song.cover || '',
+      duration: song.duration || 0,
+    }).catch(_ => {})
   }
 
   /** 切换播放模式 */

@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { search, searchHot } from '@/api/search'
 import { useMusicStore } from '@/stores/music'
+import FavoriteBtn from '@/components/FavoriteBtn.vue'
 
 const router = useRouter()
 const musicStore = useMusicStore()
@@ -145,6 +146,7 @@ function formatDuration(dt) {
           <span class="col-index">{{ i + 1 }}</span>
           <span class="col-name">
             <span class="song-name">{{ song.name }}</span>
+            <FavoriteBtn :song-id="song.id" :song-data="song" />
           </span>
           <span class="col-artist">{{ song.artists?.[0]?.name || '未知' }}</span>
           <span class="col-album">{{ song.album?.name || '未知' }}</span>

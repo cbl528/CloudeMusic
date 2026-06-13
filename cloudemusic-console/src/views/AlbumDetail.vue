@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getAlbumDetail } from '@/api/album'
 import { useMusicStore } from '@/stores/music'
+import FavoriteBtn from '@/components/FavoriteBtn.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -114,6 +115,7 @@ onMounted(async () => {
               <img :src="(song.al?.picUrl || album.picUrl) + '?param=32y32'" class="thumb-img" />
             </span>
             <span class="song-name" :class="{ highlight: musicStore.currentSong?.id === song.id }">{{ song.name }}</span>
+            <FavoriteBtn :song-id="song.id" :song-data="song" />
           </span>
           <span class="col-artist">{{ song.ar?.[0]?.name || '未知' }}</span>
           <span class="col-duration">{{ formatDuration(song.dt || song.duration) }}</span>

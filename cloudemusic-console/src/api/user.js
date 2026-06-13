@@ -64,3 +64,65 @@ export function changePassword(data) {
     data,
   })
 }
+
+// ========== 收藏 ==========
+
+/** 添加收藏 */
+export function addFavorite(data) {
+  return request({
+    url: `${BASE_URL}/favorite`,
+    method: 'post',
+    data,
+  })
+}
+
+/** 取消收藏 */
+export function removeFavorite(songId) {
+  return request({
+    url: `${BASE_URL}/favorite/${songId}`,
+    method: 'delete',
+  })
+}
+
+/** 获取收藏列表 */
+export function getFavorites() {
+  return request({
+    url: `${BASE_URL}/favorites`,
+    method: 'get',
+  })
+}
+
+/** 检查歌曲是否已收藏 */
+export function checkFavorite(songId) {
+  return request({
+    url: `${BASE_URL}/favorite/${songId}`,
+    method: 'get',
+  })
+}
+
+// ========== 播放历史 ==========
+
+/** 添加播放记录 */
+export function addHistory(data) {
+  return request({
+    url: `${BASE_URL}/history`,
+    method: 'post',
+    data,
+  })
+}
+
+/** 获取播放历史 */
+export function getHistory() {
+  return request({
+    url: `${BASE_URL}/history`,
+    method: 'get',
+  })
+}
+
+/** 清空播放历史 */
+export function clearHistory() {
+  return request({
+    url: `${BASE_URL}/history`,
+    method: 'delete',
+  })
+}

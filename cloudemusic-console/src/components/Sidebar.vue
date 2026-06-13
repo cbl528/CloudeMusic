@@ -5,6 +5,7 @@ import { Icon } from '@iconify/vue'
 import LoginModal from './LoginModal.vue'
 import { useToast } from '@/composables/useToast'
 import { useUserStore } from '@/stores/user'
+import { useAuthModal } from '@/composables/useAuthModal'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()
@@ -15,7 +16,7 @@ const userStore = useUserStore()
 // ✅ 通过 storeToRefs 保持响应式连接
 const { isLoggedIn, nickname, avatar } = storeToRefs(userStore)
 
-const showLoginModal = ref(false)
+const { showLoginModal } = useAuthModal()
 const showDropdown = ref(false)
 const userSectionRef = ref(null)
 

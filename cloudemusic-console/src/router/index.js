@@ -13,7 +13,7 @@ import ArtistDetail from '@/views/ArtistDetail.vue'
 import AlbumDetail from '@/views/AlbumDetail.vue'
 
 /** 需要登录才能访问的路由名称 */
-const authRoutes = ['favorites', 'history', 'profile', 'settings']
+const authRoutes = ['profile', 'settings']
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,8 +29,8 @@ const router = createRouter({
         { path: 'artist/:id', name: 'artist', component: ArtistDetail, meta: { requiresAuth: false } },
         { path: 'album/:id', name: 'album', component: AlbumDetail, meta: { requiresAuth: false } },
         { path: 'search', name: 'search', component: Search, meta: { requiresAuth: false } },
-        { path: 'favorites', name: 'favorites', component: Favorites, meta: { requiresAuth: true } },
-        { path: 'history', name: 'history', component: History, meta: { requiresAuth: true } },
+        { path: 'favorites', name: 'favorites', component: Favorites, meta: { requiresAuth: false } },
+        { path: 'history', name: 'history', component: History, meta: { requiresAuth: false } },
         { path: 'profile', name: 'profile', component: Profile, meta: { requiresAuth: true } },
         { path: 'settings', name: 'settings', component: Settings, meta: { requiresAuth: true } },
       ],
