@@ -9,6 +9,7 @@ import History from '@/views/History.vue'
 import Profile from '@/views/Profile.vue'
 import Settings from '@/views/Settings.vue'
 import PlaylistDetail from '@/views/PlaylistDetail.vue'
+import ArtistDetail from '@/views/ArtistDetail.vue'
 
 /** 需要登录才能访问的路由名称 */
 const authRoutes = ['favorites', 'history', 'profile', 'settings']
@@ -24,6 +25,7 @@ const router = createRouter({
         { path: 'toplist', name: 'toplist', component: Toplist, meta: { requiresAuth: false } },
         { path: 'artists', name: 'artists', component: Artists, meta: { requiresAuth: false } },
         { path: 'playlist/:id', name: 'playlist', component: PlaylistDetail, meta: { requiresAuth: false } },
+        { path: 'artist/:id', name: 'artist', component: ArtistDetail, meta: { requiresAuth: false } },
         { path: 'search', name: 'search', component: Search, meta: { requiresAuth: false } },
         { path: 'favorites', name: 'favorites', component: Favorites, meta: { requiresAuth: true } },
         { path: 'history', name: 'history', component: History, meta: { requiresAuth: true } },

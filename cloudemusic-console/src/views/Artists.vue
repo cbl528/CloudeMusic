@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getTopArtists } from '@/api/artist'
-import { useMusicStore } from '@/stores/music'
 
-const musicStore = useMusicStore()
+const router = useRouter()
 const artists = ref([])
 const loading = ref(true)
 
@@ -38,7 +38,7 @@ onMounted(async () => {
         v-for="artist in artists"
         :key="artist.id"
         class="artist-card"
-        @click="musicStore.play(artist)"
+        @click="router.push('/artist/' + artist.id)"
       >
         <div class="artist-avatar">
           <img
