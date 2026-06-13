@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { search, searchHot } from '@/api/search'
+import { useMusicStore } from '@/stores/music'
+
+const musicStore = useMusicStore()
 
 const keyword = ref('')
 const searchType = ref('song')
@@ -54,6 +57,12 @@ function onKeydown(e) {
 function onHotTagClick(kw) {
   keyword.value = kw
   doSearch()
+}
+
+function playSearchResult(index) {
+  if (searchType.value === 'song' && results.value.length) {
+    musicStore.playMultiple(results.value, index)
+  }
 }
 
 function formatDuration(dt) {
@@ -121,6 +130,7 @@ function formatDuration(dt) {
           v-for="(song, i) in results"
           :key="song.id"
           class="result-row"
+          @click="playSearchResult(i)"
         >
           <span class="col-index">{{ i + 1 }}</span>
           <span class="col-name">{{ song.name }}</span>

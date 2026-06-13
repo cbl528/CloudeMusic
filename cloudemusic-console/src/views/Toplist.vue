@@ -1,9 +1,18 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getToplist, getPlaylistDetail } from '@/api/toplist'
+import { useMusicStore } from '@/stores/music'
+
+const musicStore = useMusicStore()
 
 const toplists = ref([])
 const loading = ref(true)
+
+function playToplistTracks(tracks, index = 0) {
+  if (tracks && tracks.length) {
+    musicStore.playMultiple(tracks, index)
+  }
+}
 
 onMounted(async () => {
   try {
@@ -18,7 +27,7 @@ onMounted(async () => {
     toplists.value = list.slice(0, 6).map((tl, i) => {
       const detail = details[i]
       const tracks = detail.status === 'fulfilled'
-        ? (detail.value.playlist?.tracks || []).slice(0, 3)
+        ? (detail.value.playlist?.tracks || []).slice(0, 10)
         : []
       return { ...tl, tracks }
     })
@@ -44,7 +53,7 @@ onMounted(async () => {
 
       <div class="toplist-grid">
         <div v-for="tl in toplists" :key="tl.id" class="toplist-card">
-          <div class="toplist-cover">
+          <div class="toplist-cover" @click.stop="playToplistTracks(tl.tracks)">
             <img
               v-if="tl.coverImgUrl"
               :src="tl.coverImgUrl"
@@ -54,13 +63,21 @@ onMounted(async () => {
             <div v-else class="toplist-rank-placeholder">
               {{ toplists.indexOf(tl) + 1 }}
             </div>
+            <div class="tl-play-overlay">▶ 播放全部</div>
           </div>
           <div class="toplist-info">
             <h3 class="toplist-name">{{ tl.name }}</h3>
             <p class="toplist-desc">{{ tl.description }}</p>
             <div class="toplist-songs">
-              <p v-for="(song, i) in tl.tracks" :key="song.id" class="toplist-song">
-                {{ i + 1 }}. {{ song.name }} — {{ song.ar?.[0]?.name || '未知' }}
+              <p
+                v-for="(song, i) in tl.tracks"
+                :key="song.id"
+                class="toplist-song"
+                :class="{ active: musicStore.currentSong?.id === song.id }"
+                @click.stop="musicStore.playMultiple(tl.tracks, i)"
+              >
+                <span class="song-idx">{{ i + 1 }}</span>
+                {{ song.name }} — {{ song.ar?.[0]?.name || '未知' }}
               </p>
               <p v-if="!tl.tracks.length" class="toplist-song empty">暂无歌曲</p>
             </div>
@@ -145,6 +162,23 @@ onMounted(async () => {
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
 }
 
+.tl-play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-white);
+  font-size: 14px;
+  opacity: 0;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.toplist-cover:hover .tl-play-overlay {
+  opacity: 1;
+}
+
 .toplist-info {
   flex: 1;
   min-width: 0;
@@ -173,6 +207,19 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.toplist-song:hover {
+  color: var(--color-primary);
+}
+.toplist-song.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.toplist-song .song-idx {
+  display: inline-block;
+  width: 18px;
+  text-align: right;
+  margin-right: 4px;
 }
 .toplist-song.empty {
   color: var(--text-light);

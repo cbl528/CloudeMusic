@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getBanner, getPersonalized, getNewSong } from '@/api/recommend'
+import { useMusicStore } from '@/stores/music'
+
+const musicStore = useMusicStore()
 
 const banners = ref([])
 const playlists = ref([])
@@ -38,6 +41,10 @@ function goToSlide(index) {
   currentSlide.value = index
   stopSlide()
   startSlide()
+}
+
+function playAllNewSongs(index) {
+  musicStore.playMultiple(newSongs.value, index)
 }
 
 function formatPlayCount(count) {
@@ -138,7 +145,12 @@ onUnmounted(() => {
           <a href="#" class="section-more">更多 &gt;</a>
         </div>
         <div v-if="newSongs.length" class="card-grid">
-          <div v-for="item in newSongs" :key="item.id" class="music-card">
+          <div
+            v-for="(item, i) in newSongs"
+            :key="item.id"
+            class="music-card"
+            @click="playAllNewSongs(i)"
+          >
             <div class="card-cover">
               <img v-if="item.picUrl" :src="item.picUrl" :alt="item.name" class="card-img" />
               <div v-else class="card-cover-placeholder small">♪</div>
