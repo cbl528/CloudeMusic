@@ -35,7 +35,7 @@ public class NeteaseApiService {
     /** 获取歌曲播放链接 */
     public JsonNode songUrl(String ids, Integer br) {
         URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/song/url")
-                .queryParam("ids", ids)
+                .queryParam("id", ids)
                 .queryParam("br", br != null ? br : 320000)
                 .build().encode().toUri();
         return callApi(uri);
