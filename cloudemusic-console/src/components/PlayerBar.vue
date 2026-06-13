@@ -1,9 +1,15 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useMusicStore } from '@/stores/music'
+import { useToast } from '@/composables/useToast'
 
 const store = useMusicStore()
+const toast = useToast()
+
+watch(() => store.errorMsg, (msg) => {
+  if (msg) toast.error(msg)
+})
 
 // --- 进度条拖拽 ---
 const progressRef = ref(null)
@@ -207,9 +213,6 @@ function handlePlay() {
             </div>
             <span class="time">{{ formatTime(store.duration) }}</span>
           </div>
-
-          <!-- 错误提示 -->
-          <p v-if="store.errorMsg" class="error-tip">{{ store.errorMsg }}</p>
         </div>
 
         <!-- 右侧：音量等 -->
@@ -251,6 +254,8 @@ function handlePlay() {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* ---- 空状态 ---- */
@@ -264,12 +269,13 @@ function handlePlay() {
 
 /* ---- 主布局 ---- */
 .player-inner {
-  display: flex;
+  display: grid;
+  grid-template-columns: 220px 1fr 160px;
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 24px;
-  gap: 24px;
+  padding: 6px 24px;
+  column-gap: 24px;
 }
 
 /* ---- 左侧歌曲信息 ---- */
@@ -329,8 +335,9 @@ function handlePlay() {
 
 /* ---- 中间控制区 ---- */
 .player-center {
-  flex: 1;
-  max-width: 560px;
+  justify-self: center;
+  width: 100%;
+  max-width: 700px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -388,7 +395,6 @@ function handlePlay() {
   align-items: center;
   gap: 10px;
   width: 100%;
-  max-width: 500px;
 }
 
 .time {
@@ -431,20 +437,13 @@ function handlePlay() {
   display: none;
 }
 
-/* ---- 错误提示 ---- */
-.error-tip {
-  font-size: 11px;
-  color: var(--color-primary);
-  margin-top: 2px;
-}
-
 /* ---- 右侧音量 ---- */
 .player-extra {
+  justify-self: end;
   display: flex;
   align-items: center;
   gap: 8px;
   width: 160px;
-  flex-shrink: 0;
   justify-content: flex-end;
 }
 
