@@ -88,4 +88,21 @@ public class NeteaseController {
             @RequestParam(defaultValue = "0") int offset) {
         return Result.success(neteaseApiService.artistList(cat, limit, offset));
     }
+
+    @GetMapping("/artists")
+    public Result<JsonNode> artists(@RequestParam long id) {
+        return Result.success(neteaseApiService.artists(id));
+    }
+
+    @GetMapping("/artist/album")
+    public Result<JsonNode> artistAlbum(
+            @RequestParam long id,
+            @RequestParam(defaultValue = "30") int limit) {
+        return Result.success(neteaseApiService.artistAlbum(id, limit));
+    }
+
+    @GetMapping("/artist/desc")
+    public Result<JsonNode> artistDesc(@RequestParam long id) {
+        return Result.success(neteaseApiService.artistDesc(id));
+    }
 }

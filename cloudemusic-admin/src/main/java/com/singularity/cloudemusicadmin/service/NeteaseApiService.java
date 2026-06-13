@@ -123,6 +123,31 @@ public class NeteaseApiService {
         return callApi(uri);
     }
 
+    /** 歌手详情 + 热门50首 */
+    public JsonNode artists(long id) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/artists")
+                .queryParam("id", id)
+                .build().encode().toUri();
+        return callApi(uri);
+    }
+
+    /** 歌手专辑列表 */
+    public JsonNode artistAlbum(long id, int limit) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/artist/album")
+                .queryParam("id", id)
+                .queryParam("limit", limit)
+                .build().encode().toUri();
+        return callApi(uri);
+    }
+
+    /** 歌手描述/介绍 */
+    public JsonNode artistDesc(long id) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/artist/desc")
+                .queryParam("id", id)
+                .build().encode().toUri();
+        return callApi(uri);
+    }
+
     /** 统一调用入口：检查 code 并返回完整响应体 */
     private JsonNode callApi(String url) {
         return callApi(URI.create(url));
