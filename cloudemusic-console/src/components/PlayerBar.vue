@@ -255,7 +255,6 @@ function handlePlay() {
   align-items: center;
   justify-content: center;
   width: 100%;
-  overflow: hidden;
 }
 
 /* ---- 空状态 ---- */

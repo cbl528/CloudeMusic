@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { getSongUrl } from '@/api/song'
+import { getSongUrl, getSongDetail } from '@/api/song'
 
 function normalizeSong(s) {
   if (!s) return null
@@ -103,6 +103,17 @@ export const useMusicStore = defineStore('music', () => {
     errorMsg.value = ''
 
     try {
+      // 如果没有封面图，获取歌曲详情补充
+      if (!song.cover) {
+        try {
+          const detailData = await getSongDetail(song.id)
+          const detail = detailData.songs?.[0]
+          if (detail) {
+            song.cover = detail.al?.picUrl || detail.album?.picUrl || ''
+          }
+        } catch (_) { /* 封面获取失败不影响播放 */ }
+      }
+
       const res = await getSongUrl(song.id)
       const items = res.data || []
       const item = Array.isArray(items) ? items[0] : null
