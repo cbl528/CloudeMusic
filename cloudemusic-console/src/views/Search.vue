@@ -1,9 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { search, searchHot } from '@/api/search'
 import { useMusicStore } from '@/stores/music'
 
+const router = useRouter()
 const musicStore = useMusicStore()
+
+function goArtist(id) {
+  router.push(`/artist/${id}`)
+}
 
 const keyword = ref('')
 const searchType = ref('song')
@@ -27,6 +33,11 @@ onMounted(async () => {
   } catch (_) {}
 })
 
+// 切换搜索类型时重新搜索
+watch(searchType, () => {
+  if (keyword.value.trim()) doSearch()
+})
+
 async function doSearch() {
   const kw = keyword.value.trim()
   if (!kw) return
@@ -37,11 +48,10 @@ async function doSearch() {
     const type = typeMap[searchType.value] || 1
     const res = await search(kw, type)
     // 搜索返回的结果字段取决于 type
-    if (res.result?.songs) results.value = res.result.songs
-    else if (res.result?.artists) results.value = res.result.artists
-    else if (res.result?.albums) results.value = res.result.albums
+    if (res.result?.songs) { results.value = res.result.songs; total.value = res.result.songCount || results.value.length }
+    else if (res.result?.artists) { results.value = res.result.artists; total.value = res.result.artistCount || results.value.length }
+    else if (res.result?.albums) { results.value = res.result.albums; total.value = res.result.albumCount || results.value.length }
     else results.value = []
-    total.value = res.result?.songCount || results.value.length
   } catch (e) {
     console.error('搜索失败', e)
     results.value = []
@@ -140,20 +150,44 @@ function formatDuration(dt) {
         </div>
       </template>
 
-      <!-- 歌手/专辑网格模式 -->
-      <template v-else>
+      <!-- 歌手网格 -->
+      <template v-else-if="searchType === 'artist'">
         <div class="artist-grid">
-          <div v-for="item in results" :key="item.id" class="grid-card">
-            <div class="grid-cover">
+          <div
+            v-for="item in results"
+            :key="item.id"
+            class="artist-card"
+            @click="goArtist(item.id)"
+          >
+            <div class="artist-cover">
               <img
-                v-if="item.img1v1Url || item.picUrl"
-                :src="item.img1v1Url || item.picUrl"
+                v-if="item.img1v1Url"
+                :src="item.img1v1Url"
                 :alt="item.name"
-                class="grid-img"
+                class="artist-img"
               />
-              <div v-else class="grid-placeholder">{{ item.name.charAt(0) }}</div>
+              <div v-else class="artist-placeholder">{{ item.name.charAt(0) }}</div>
             </div>
-            <p class="grid-name">{{ item.name }}</p>
+            <p class="artist-name">{{ item.name }}</p>
+          </div>
+        </div>
+      </template>
+
+      <!-- 专辑网格 -->
+      <template v-else>
+        <div class="album-grid">
+          <div v-for="item in results" :key="item.id" class="album-card">
+            <div class="album-cover">
+              <img
+                v-if="item.picUrl || item.artist?.img1v1Url"
+                :src="item.picUrl || item.artist?.img1v1Url"
+                :alt="item.name"
+                class="album-img"
+              />
+              <div v-else class="album-placeholder">♪</div>
+            </div>
+            <p class="album-name">{{ item.name }}</p>
+            <p class="album-artist">{{ item.artist?.name || '' }}</p>
           </div>
         </div>
       </template>
@@ -343,21 +377,21 @@ function formatDuration(dt) {
 .col-album { width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .col-duration { width: 60px; text-align: right; }
 
-/* 网格结果 */
+/* ===== 歌手网格（圆形） ===== */
 .artist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 32px 24px;
 }
-.grid-card {
+.artist-card {
   text-align: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform 0.25s;
 }
-.grid-card:hover {
+.artist-card:hover {
   transform: translateY(-4px);
 }
-.grid-cover {
+.artist-cover {
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -365,12 +399,12 @@ function formatDuration(dt) {
   margin: 0 auto 10px;
   background: linear-gradient(135deg, #e8e8e8, #d0d0d0);
 }
-.grid-img {
+.artist-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.grid-placeholder {
+.artist-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
@@ -380,10 +414,64 @@ function formatDuration(dt) {
   color: #bbb;
   font-weight: 700;
 }
-.grid-name {
+.artist-name {
   font-size: 14px;
   color: var(--text-primary);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== 专辑网格（方形） ===== */
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 28px 24px;
+}
+.album-card {
+  cursor: pointer;
+  transition: transform 0.25s;
+}
+.album-card:hover {
+  transform: translateY(-4px);
+}
+.album-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 10px;
+  background: #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.album-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.album-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+  font-size: 36px;
+  color: #ccc;
+}
+.album-name {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.album-artist {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
