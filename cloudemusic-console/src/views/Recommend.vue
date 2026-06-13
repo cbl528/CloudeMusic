@@ -1,9 +1,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getBanner, getPersonalized, getNewSong } from '@/api/recommend'
+import { useRouter } from 'vue-router'
 import { useMusicStore } from '@/stores/music'
 
+const router = useRouter()
 const musicStore = useMusicStore()
+
+function goPlaylist(id) {
+  router.push(`/playlist/${id}`)
+}
 
 const banners = ref([])
 const playlists = ref([])
@@ -125,7 +131,12 @@ onUnmounted(() => {
           <a href="#" class="section-more">更多 &gt;</a>
         </div>
         <div v-if="playlists.length" class="card-grid">
-          <div v-for="pl in playlists" :key="pl.id" class="playlist-card">
+          <div
+            v-for="pl in playlists"
+            :key="pl.id"
+            class="playlist-card"
+            @click="goPlaylist(pl.id)"
+          >
             <div class="card-cover">
               <img v-if="pl.picUrl" :src="pl.picUrl" :alt="pl.name" class="card-img" />
               <div v-else class="card-cover-placeholder">♪</div>
