@@ -24,10 +24,36 @@ export const useMusicStore = defineStore('music', () => {
   const playing = ref(false)
   const currentTime = ref(0)
   const duration = ref(0)
-  const volume = ref(0.7)
+  const volume = ref(parseFloat(localStorage.getItem('volume') || '0.4'))
   const playMode = ref('order') // order | random | single
   const loading = ref(false)
   const errorMsg = ref('')
+
+  // --- 从 localStorage 恢复播放状态 ---
+  function restorePlayback() {
+    try {
+      const data = JSON.parse(localStorage.getItem('playback') || 'null')
+      if (data?.playlist?.length && typeof data.currentIndex === 'number' && data.currentIndex >= 0) {
+        playlist.value = data.playlist
+        currentIndex.value = data.currentIndex
+        if (data.currentTime) currentTime.value = data.currentTime
+      }
+    } catch (_) {}
+  }
+  restorePlayback()
+
+  function savePlayback() {
+    localStorage.setItem('playback', JSON.stringify({
+      playlist: playlist.value,
+      currentIndex: currentIndex.value,
+      currentTime: currentTime.value,
+    }))
+  }
+
+  // 页面关闭前保存最新进度
+  if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', savePlayback)
+  }
 
   // --- 计算属性 ---
   const currentSong = computed(() => {
@@ -98,6 +124,7 @@ export const useMusicStore = defineStore('music', () => {
     if (index < 0 || index >= list.length) return
 
     currentIndex.value = index
+    savePlayback()
     const song = list[index]
     loading.value = true
     errorMsg.value = ''
@@ -167,7 +194,11 @@ export const useMusicStore = defineStore('music', () => {
   /** 切换播放/暂停 */
   function togglePlay() {
     const el = getAudio()
-    if (!el.src) return
+    if (!el.src) {
+      // 恢复播放：有歌但未加载音频，重新加载
+      if (currentSong.value) playByIndex(currentIndex.value)
+      return
+    }
     if (el.paused) el.play()
     else el.pause()
   }
@@ -212,6 +243,7 @@ export const useMusicStore = defineStore('music', () => {
   function setVolume(v) {
     const val = Math.max(0, Math.min(1, v))
     volume.value = val
+    localStorage.setItem('volume', val)
     if (audio) audio.volume = val
   }
 

@@ -143,7 +143,9 @@ function formatDuration(dt) {
           @click="playSearchResult(i)"
         >
           <span class="col-index">{{ i + 1 }}</span>
-          <span class="col-name">{{ song.name }}</span>
+          <span class="col-name">
+            <span class="song-name">{{ song.name }}</span>
+          </span>
           <span class="col-artist">{{ song.artists?.[0]?.name || '未知' }}</span>
           <span class="col-album">{{ song.album?.name || '未知' }}</span>
           <span class="col-duration">{{ formatDuration(song.duration) }}</span>
@@ -376,11 +378,11 @@ function formatDuration(dt) {
 .result-row:hover {
   background: var(--bg-hover);
 }
-.col-index { width: 40px; }
-.col-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.col-artist { width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.col-album { width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.col-duration { width: 60px; text-align: right; }
+.col-index { width: 40px; flex-shrink: 0; }
+.col-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-artist { width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.col-album { width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.col-duration { width: 60px; text-align: right; flex-shrink: 0; }
 
 /* ===== 歌手网格（圆形） ===== */
 .artist-grid {

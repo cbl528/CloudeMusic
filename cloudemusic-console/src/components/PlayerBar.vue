@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useMusicStore } from '@/stores/music'
 import { useToast } from '@/composables/useToast'
+import LyricOverlay from '@/components/LyricOverlay.vue'
 
 const store = useMusicStore()
 const toast = useToast()
@@ -79,6 +80,12 @@ const volumeIcon = computed(() => {
   return 'mdi:volume-high'
 })
 
+// --- 歌词浮层 ---
+const lyricShow = ref(false)
+function toggleLyric() {
+  lyricShow.value = !lyricShow.value
+}
+
 // --- 歌曲信息提取 ---
 const artistName = computed(() => {
   const s = store.currentSong
@@ -124,7 +131,7 @@ function handlePlay() {
       <div class="player-inner">
         <!-- 左侧：歌曲信息 -->
         <div class="player-song">
-          <div class="cover-wrap">
+          <div class="cover-wrap" @click="toggleLyric">
             <img
               v-if="store.currentSong.cover"
               :src="store.currentSong.cover"
@@ -240,6 +247,8 @@ function handlePlay() {
         </div>
       </div>
     </template>
+
+    <LyricOverlay v-if="lyricShow" @close="lyricShow = false" />
   </footer>
 </template>
 
@@ -293,6 +302,7 @@ function handlePlay() {
   overflow: hidden;
   flex-shrink: 0;
   background: #f0f0f0;
+  cursor: pointer;
 }
 
 .cover-img {
