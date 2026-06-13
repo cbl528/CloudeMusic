@@ -114,7 +114,7 @@ public class NeteaseApiService {
     }
 
     /** 分类歌手列表 */
-    public JsonNode artistList(int cat, int limit, int offset) {
+    public JsonNode artistList(String cat, int limit, int offset) {
         URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/artist/list")
                 .queryParam("cat", cat)
                 .queryParam("limit", limit)

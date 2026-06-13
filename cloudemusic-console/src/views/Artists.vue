@@ -1,75 +1,45 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { getTopArtists, getArtistList } from '@/api/artist'
+import { ref, onMounted } from 'vue'
+import { getTopArtists } from '@/api/artist'
+import { useMusicStore } from '@/stores/music'
 
-const categories = [
-  { label: '华语', cat: 1001 },
-  { label: '欧美', cat: 2001 },
-  { label: '日本', cat: 6001 },
-  { label: '韩国', cat: 7001 },
-  { label: '其他', cat: 4001 },
-]
-
-const activeCat = ref('华语')
+const musicStore = useMusicStore()
 const artists = ref([])
 const loading = ref(true)
 
-async function fetchArtists(catLabel) {
-  loading.value = true
+onMounted(async () => {
   try {
-    const cat = categories.find(c => c.label === catLabel)
-    if (catLabel === '华语' && cat) {
-      // 默认使用热门歌手
-      const res = await getTopArtists(24)
-      artists.value = res.artists || []
-    } else if (cat) {
-      const res = await getArtistList(cat.cat, 24)
-      artists.value = res.artists || []
-    } else {
-      const res = await getTopArtists(24)
-      artists.value = res.artists || []
-    }
+    const res = await getTopArtists(40)
+    artists.value = res.artists || []
   } catch (e) {
     console.error('获取歌手列表失败', e)
   } finally {
     loading.value = false
   }
-}
-
-function switchCategory(cat) {
-  activeCat.value = cat
-  fetchArtists(cat)
-}
-
-onMounted(() => fetchArtists('华语'))
+})
 </script>
 
 <template>
   <div class="page-artists">
     <div class="page-header">
-      <h2>热门歌手</h2>
-      <p class="page-desc">发现你喜爱的音乐人</p>
+      <div class="header-left">
+        <h2>热门歌手</h2>
+        <p class="page-desc">发现你喜爱的音乐人</p>
+      </div>
+      <span class="artist-count">共 {{ artists.length }} 位</span>
     </div>
 
-    <!-- 分类标签 -->
-    <div class="categories">
-      <span
-        v-for="cat in categories"
-        :key="cat.label"
-        class="category-tag"
-        :class="{ active: activeCat === cat.label }"
-        @click="switchCategory(cat.label)"
-      >
-        {{ cat.label }}
-      </span>
+    <div v-if="loading" class="loading-state">
+      <span>加载中...</span>
     </div>
 
-    <!-- 加载中 -->
-    <div v-if="loading" class="loading-state">加载中...</div>
-
-    <!-- 歌手列表 -->
     <div v-else-if="artists.length" class="artist-grid">
-      <div v-for="artist in artists" :key="artist.id" class="artist-card">
+      <div
+        v-for="artist in artists"
+        :key="artist.id"
+        class="artist-card"
+        @click="musicStore.play(artist)"
+      >
         <div class="artist-avatar">
           <img
             v-if="artist.img1v1Url"
@@ -78,13 +48,16 @@ onMounted(() => fetchArtists('华语'))
             class="artist-img"
           />
           <div v-else class="avatar-placeholder">{{ artist.name.charAt(0) }}</div>
-          <div class="artist-play-overlay">▶</div>
+          <div class="avatar-mask">
+            <span class="play-icon">▶</span>
+          </div>
         </div>
         <p class="artist-name">{{ artist.name }}</p>
         <p class="artist-desc">{{ artist.albumSize || 0 }} 张专辑</p>
       </div>
     </div>
-    <div v-else class="empty-tip">暂无歌手数据</div>
+
+    <div v-else class="loading-state">暂无歌手数据</div>
   </div>
 </template>
 
@@ -94,122 +67,132 @@ onMounted(() => fetchArtists('华语'))
   width: 100%;
 }
 
-.loading-state, .empty-tip {
-  text-align: center;
-  padding: 60px 0;
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
   color: var(--text-light);
   font-size: 14px;
 }
 
+/* ===== 头部 ===== */
 .page-header {
-  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 28px;
 }
 .page-header h2 {
   font-size: 24px;
   font-weight: 700;
-  margin-bottom: 6px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 .page-desc {
   font-size: 13px;
   color: var(--text-light);
 }
-
-.categories {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-.category-tag {
-  padding: 6px 18px;
-  border-radius: 20px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: var(--transition);
-}
-.category-tag:hover {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-.category-tag.active {
-  background: var(--color-primary);
-  color: var(--text-white);
-  border-color: var(--color-primary);
+.artist-count {
+  font-size: 12px;
+  color: var(--text-light);
+  padding-bottom: 2px;
 }
 
+/* ===== 歌手网格 ===== */
 .artist-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 32px 24px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 28px 20px;
 }
 
 .artist-card {
   text-align: center;
   cursor: pointer;
-  transition: var(--transition);
+  transition: transform 0.25s;
 }
 .artist-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
 }
 
+/* ---- 头像 ---- */
 .artist-avatar {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   overflow: hidden;
-  margin: 0 auto 10px;
+  margin: 0 auto 12px;
+  background: linear-gradient(135deg, #e8e8e8, #d0d0d0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .artist-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s;
+}
+.artist-card:hover .artist-img {
+  transform: scale(1.08);
 }
 
 .avatar-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #e8e8e8, #d0d0d0);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
-  color: #bbb;
+  font-size: 40px;
+  color: #ccc;
   font-weight: 700;
 }
 
-.artist-play-overlay {
+.avatar-mask {
   position: absolute;
-  right: 4px;
-  bottom: 4px;
-  width: 32px;
-  height: 32px;
+  inset: 0;
   border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--text-white);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
   opacity: 0;
-  transition: var(--transition);
+  transition: opacity 0.25s;
 }
-.artist-card:hover .artist-play-overlay {
+.artist-card:hover .avatar-mask {
   opacity: 1;
 }
 
+.play-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  padding-left: 3px;
+  transition: transform 0.2s;
+}
+.artist-card:hover .play-icon {
+  transform: scale(1.1);
+}
+
+/* ---- 文字 ---- */
 .artist-name {
   font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .artist-desc {
   font-size: 12px;
   color: var(--text-light);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 </style>
