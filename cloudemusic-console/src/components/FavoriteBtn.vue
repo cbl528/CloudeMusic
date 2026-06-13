@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { checkFavorite, addFavorite, removeFavorite } from '@/api/user'
 import { useAuthModal } from '@/composables/useAuthModal'
@@ -15,6 +15,13 @@ const toast = useToast()
 
 const favorited = ref(false)
 const loading = ref(false)
+
+// 兼容多种封面字段
+const songCover = computed(() => {
+  const s = props.songData
+  if (!s) return ''
+  return s.cover || s.picUrl || s.imageUrl || s.al?.picUrl || s.album?.picUrl || ''
+})
 
 // 是否已登录
 function isLoggedIn() {
@@ -50,7 +57,7 @@ async function toggle() {
         songId: props.songId,
         songName: props.songData?.name || '',
         artist: formatArtist(props.songData),
-        cover: props.songData?.cover || '',
+        cover: songCover.value,
         duration: props.songData?.duration || 0,
       })
       favorited.value = true

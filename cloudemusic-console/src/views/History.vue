@@ -139,6 +139,7 @@ function onLoginClick() {
           <span class="col-duration">{{ formatDuration(item.duration) }}</span>
         </div>
       </div>
+      <div class="list-footer">—— 暂时没有更多了 ——</div>
     </template>
   </div>
 </template>
@@ -276,5 +277,13 @@ function onLoginClick() {
 }
 .row-name.highlight {
   color: var(--color-primary); font-weight: 600;
+}
+
+.list-footer {
+  text-align: center;
+  padding: 24px 0 40px;
+  font-size: 13px;
+  color: var(--text-light);
+  user-select: none;
 }
 </style>

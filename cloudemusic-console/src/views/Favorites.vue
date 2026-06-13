@@ -115,6 +115,7 @@ function onLoginClick() {
           <button class="btn-del" title="取消收藏">✕</button>
         </span>
       </div>
+      <div class="list-footer">—— 暂时没有更多了 ——</div>
     </div>
   </div>
 </template>
@@ -233,5 +234,13 @@ function onLoginClick() {
 }
 .btn-del:hover {
   color: var(--color-primary);
+}
+
+.list-footer {
+  text-align: center;
+  padding: 24px 0 40px;
+  font-size: 13px;
+  color: var(--text-light);
+  user-select: none;
 }
 </style>

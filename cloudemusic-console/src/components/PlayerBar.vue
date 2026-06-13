@@ -4,6 +4,7 @@ import { Icon } from '@iconify/vue'
 import { useMusicStore } from '@/stores/music'
 import { useToast } from '@/composables/useToast'
 import LyricOverlay from '@/components/LyricOverlay.vue'
+import FavoriteBtn from '@/components/FavoriteBtn.vue'
 
 const store = useMusicStore()
 const toast = useToast()
@@ -222,8 +223,13 @@ function handlePlay() {
           </div>
         </div>
 
-        <!-- 右侧：音量等 -->
+        <!-- 右侧：收藏 + 音量等 -->
         <div class="player-extra">
+          <FavoriteBtn
+            v-if="store.currentSong"
+            :song-id="store.currentSong.id"
+            :song-data="store.currentSong"
+          />
           <div
             class="volume-wrap"
             @mouseenter="onVolumeEnter"

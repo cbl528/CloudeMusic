@@ -163,15 +163,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addFavorite(Long userId, SongActionRequest request) {
-        // 检查是否已收藏
-        Long count = favoriteMapper.selectCount(
-                Wrappers.<Favorite>lambdaQuery()
-                        .eq(Favorite::getUserId, userId)
-                        .eq(Favorite::getSongId, request.getSongId()));
-        if (count != null && count > 0) {
-            throw new BusinessException(409, "该歌曲已收藏");
-        }
-
         Favorite favorite = new Favorite();
         favorite.setUserId(userId);
         favorite.setSongId(request.getSongId());
@@ -181,7 +172,11 @@ public class UserServiceImpl implements UserService {
         favorite.setDuration(request.getDuration() != null ? request.getDuration() : 0);
         favorite.setType("song");
 
-        favoriteMapper.insert(favorite);
+        try {
+            favoriteMapper.insert(favorite);
+        } catch (DuplicateKeyException e) {
+            // 已收藏，忽略重复
+        }
     }
 
     @Override

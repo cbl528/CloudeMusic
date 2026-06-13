@@ -100,6 +100,7 @@ onMounted(async () => {
           <span class="col-index">#</span>
           <span class="col-title">标题</span>
           <span class="col-artist">歌手</span>
+          <span class="col-fav"></span>
           <span class="col-duration">时长</span>
         </div>
         <div
@@ -115,9 +116,9 @@ onMounted(async () => {
               <img :src="(song.al?.picUrl || album.picUrl) + '?param=32y32'" class="thumb-img" />
             </span>
             <span class="song-name" :class="{ highlight: musicStore.currentSong?.id === song.id }">{{ song.name }}</span>
-            <FavoriteBtn :song-id="song.id" :song-data="song" />
           </span>
           <span class="col-artist">{{ song.ar?.[0]?.name || '未知' }}</span>
+          <span class="col-fav"><FavoriteBtn :song-id="song.id" :song-data="song" /></span>
           <span class="col-duration">{{ formatDuration(song.dt || song.duration) }}</span>
         </div>
         <div v-if="!songs.length" class="empty-tip">暂无歌曲</div>
@@ -359,6 +360,14 @@ onMounted(async () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.col-fav {
+  width: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .col-duration {

@@ -134,6 +134,7 @@ function formatDuration(dt) {
           <span class="col-index">#</span>
           <span class="col-name">音乐标题</span>
           <span class="col-artist">歌手</span>
+          <span class="col-fav"></span>
           <span class="col-album">专辑</span>
           <span class="col-duration">时长</span>
         </div>
@@ -146,9 +147,9 @@ function formatDuration(dt) {
           <span class="col-index">{{ i + 1 }}</span>
           <span class="col-name">
             <span class="song-name">{{ song.name }}</span>
-            <FavoriteBtn :song-id="song.id" :song-data="song" />
           </span>
           <span class="col-artist">{{ song.artists?.[0]?.name || '未知' }}</span>
+          <span class="col-fav"><FavoriteBtn :song-id="song.id" :song-data="song" /></span>
           <span class="col-album">{{ song.album?.name || '未知' }}</span>
           <span class="col-duration">{{ formatDuration(song.duration) }}</span>
         </div>
@@ -383,6 +384,7 @@ function formatDuration(dt) {
 .col-index { width: 40px; flex-shrink: 0; }
 .col-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .col-artist { width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.col-fav { width: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .col-album { width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
 .col-duration { width: 60px; text-align: right; flex-shrink: 0; }
 
