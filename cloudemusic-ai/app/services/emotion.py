@@ -34,7 +34,8 @@ class SongEmotion:
 
     def __init__(self, song_id: str, name: str, artists: str,
                  emotion: str, intensity: float, description: str,
-                 vector: list[float], lyric_snippet: str):
+                 vector: list[float], lyric_snippet: str,
+                 cover: str = "", duration: int = 0):
         self.song_id = song_id
         self.name = name
         self.artists = artists
@@ -43,6 +44,8 @@ class SongEmotion:
         self.description = description
         self.vector = vector
         self.lyric_snippet = lyric_snippet
+        self.cover = cover
+        self.duration = duration
         self.created_at = datetime.now().isoformat()
 
     def to_dict(self) -> dict:
@@ -55,6 +58,8 @@ class SongEmotion:
             "description": self.description,
             "vector": self.vector,
             "lyric_snippet": self.lyric_snippet,
+            "cover": self.cover,
+            "duration": self.duration,
             "created_at": self.created_at,
         }
 
@@ -69,6 +74,8 @@ class SongEmotion:
             description=d.get("description", ""),
             vector=d["vector"],
             lyric_snippet=d.get("lyric_snippet", ""),
+            cover=d.get("cover", ""),
+            duration=d.get("duration", 0),
         )
         obj.created_at = d.get("created_at", "")
         return obj
@@ -146,7 +153,8 @@ class EmotionIndex:
 
     # ---- 索引 ----
 
-    def register(self, song_id: str, name: str, artists: str, lyric_text: str) -> SongEmotion:
+    def register(self, song_id: str, name: str, artists: str, lyric_text: str,
+                 cover: str = "", duration: int = 0) -> SongEmotion:
         """对歌词做情感分类 + 向量化并入库（幂等，重复 song_id 跳过）。"""
         if self.has(song_id):
             return self._songs[song_id]
@@ -191,6 +199,7 @@ class EmotionIndex:
             song_id=song_id, name=name, artists=artists,
             emotion=emotion, intensity=intensity, description=description,
             vector=vector, lyric_snippet=snippet,
+            cover=cover, duration=duration,
         )
 
         with self._lock:

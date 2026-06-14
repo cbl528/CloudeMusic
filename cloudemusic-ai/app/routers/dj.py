@@ -83,24 +83,21 @@ async def register_song(req: DjRegisterRequest):
             song_id=song_id, indexed=True, emotion=index.get(song_id).emotion
         )
 
-    # 获取歌词 + 歌曲详情
+    # 获取歌词
     lyric_text = await _fetch_lyric(song_id)
+    # 获取歌曲详情（封面、时长等）
+    detail = await _fetch_song_detail(song_id)
+    name = req.song_name or detail.get("name", "")
+    artists = req.song_artists or detail.get("artists", "")
+    cover = detail.get("cover", "")
+    duration = detail.get("duration", 0)
 
     if not lyric_text or len(lyric_text.strip()) < 20:
-        detail = await _fetch_song_detail(song_id)
-        name = req.song_name or detail.get("name", "")
-        artists = req.song_artists or detail.get("artists", "")
-        index.register(song_id, name, artists, name or "纯音乐")
+        index.register(song_id, name, artists, name or "纯音乐",
+                       cover=cover, duration=duration)
     else:
-        name = req.song_name or ""
-        artists = req.song_artists or ""
-        if not name or not artists:
-            detail = await _fetch_song_detail(song_id)
-            if not name:
-                name = detail.get("name", "")
-            if not artists:
-                artists = detail.get("artists", "")
-        index.register(song_id, name, artists, lyric_text)
+        index.register(song_id, name, artists, lyric_text,
+                       cover=cover, duration=duration)
 
     se = index.get(song_id)
     return DjRegisterResponse(
@@ -127,10 +124,11 @@ async def recommend(req: DjRecommendRequest):
             detail = await _fetch_song_detail(current_id)
             name = req.current_song_name or detail.get("name", "")
             artists = req.current_song_artists or detail.get("artists", "")
-            if lyric_text:
-                index.register(current_id, name, artists, lyric_text)
-            else:
-                index.register(current_id, name, artists, name or "未知歌曲")
+            cover = detail.get("cover", "")
+            duration = detail.get("duration", 0)
+            text = lyric_text or name or "未知歌曲"
+            index.register(current_id, name, artists, text,
+                           cover=cover, duration=duration)
         except Exception as e:
             logger.error("Failed to register current song %s: %s", current_id, e)
             return DjRecommendResponse()
@@ -181,8 +179,8 @@ async def recommend(req: DjRecommendRequest):
             id=next_se.song_id,
             name=next_se.name,
             artists=next_se.artists,
-            cover="",
-            duration=0,
+            cover=next_se.cover,
+            duration=next_se.duration,
             reason=f"情感相近（{current_se.emotion} → {next_se.emotion}）",
         ),
     )
