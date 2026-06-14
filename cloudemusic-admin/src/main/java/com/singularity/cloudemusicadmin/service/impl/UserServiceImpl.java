@@ -209,17 +209,28 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addHistory(Long userId, SongActionRequest request) {
-        // 插入新记录
-        History history = new History();
-        history.setUserId(userId);
-        history.setSongId(request.getSongId());
-        history.setSongName(request.getSongName() != null ? request.getSongName() : "");
-        history.setArtist(request.getArtist() != null ? request.getArtist() : "");
-        history.setCover(request.getCover() != null ? request.getCover() : "");
-        history.setDuration(request.getDuration() != null ? request.getDuration() : 0);
-        history.setPlayedAt(LocalDateTime.now());
+        // 检查是否已有同一首歌的记录
+        History existing = historyMapper.selectOne(
+                Wrappers.<History>lambdaQuery()
+                        .eq(History::getUserId, userId)
+                        .eq(History::getSongId, request.getSongId()));
 
-        historyMapper.insert(history);
+        if (existing != null) {
+            // 已有记录，只更新播放时间
+            existing.setPlayedAt(LocalDateTime.now());
+            historyMapper.updateById(existing);
+        } else {
+            // 插入新记录
+            History history = new History();
+            history.setUserId(userId);
+            history.setSongId(request.getSongId());
+            history.setSongName(request.getSongName() != null ? request.getSongName() : "");
+            history.setArtist(request.getArtist() != null ? request.getArtist() : "");
+            history.setCover(request.getCover() != null ? request.getCover() : "");
+            history.setDuration(request.getDuration() != null ? request.getDuration() : 0);
+            history.setPlayedAt(LocalDateTime.now());
+            historyMapper.insert(history);
+        }
 
         // 保留最近 200 条，删除更早的
         List<History> kept = historyMapper.selectList(
