@@ -31,10 +31,10 @@ export const useMusicStore = defineStore('music', () => {
   const loading = ref(false)
   const errorMsg = ref('')
 
-  // --- DJ 情感接续 ---
-  const djRecommendation = ref(null)   // { commentary, next_song }
-  const djLoading = ref(false)          // DJ 推荐加载中
-  let djTriggeredSongId = null          // 当前已触发推荐的歌曲 ID（避免重复触发）
+  // --- AI 电台 ---
+  const aiRadioEnabled = ref(false)
+  const aiRadioRecommendation = ref(null)  // { commentary, next_song }
+  const aiRadioPending = ref(false)        // 歌曲已结束，待播放解说词+切歌
 
   // --- 从 localStorage 恢复播放状态 ---
   function restorePlayback() {
@@ -108,6 +108,11 @@ export const useMusicStore = defineStore('music', () => {
 
   // --- 内部逻辑 ---
   function onEnded() {
+    // AI 电台模式：阻止正常切歌，由组件处理 TTS + 切歌
+    if (aiRadioEnabled.value && aiRadioRecommendation.value?.next_song) {
+      aiRadioPending.value = true
+      return
+    }
     if (playMode.value === 'single') {
       audio.currentTime = 0
       audio.play()
@@ -132,9 +137,11 @@ export const useMusicStore = defineStore('music', () => {
 
     currentIndex.value = index
     savePlayback()
-    // 重置 DJ 推荐状态，允许新歌曲触发推荐
-    djRecommendation.value = null
-    djTriggeredSongId = null
+    // AI 电台开启时，保留推荐跨歌曲使用
+    if (!aiRadioEnabled.value) {
+      aiRadioRecommendation.value = null
+    }
+    aiRadioPending.value = false
     const song = list[index]
     loading.value = true
     errorMsg.value = ''
@@ -268,33 +275,51 @@ export const useMusicStore = defineStore('music', () => {
     djRegister(song.id, song.name || '', artists).catch(_ => {})
   }
 
-  /** 请求 AI DJ 推荐（播放进度超 60% 时调用） */
-  async function requestDjRecommendation() {
-    const song = currentSong.value
-    if (!song || djLoading.value) return null
+  /** 开启/关闭 AI 电台 */
+  function toggleAiRadio() {
+    aiRadioEnabled.value = !aiRadioEnabled.value
+    if (!aiRadioEnabled.value) {
+      aiRadioRecommendation.value = null
+      aiRadioPending.value = false
+    }
+  }
 
-    // 同一首歌已触发过推荐
-    if (djTriggeredSongId === song.id) return djRecommendation.value
+  /** 请求 AI 电台推荐 */
+  async function requestAiRadioRecommendation(excludeIds = []) {
+    const song = currentSong.value
+    if (!song) return null
 
     const artists = (song.artists || []).map(a => a.name || a).join(' / ')
-    djLoading.value = true
-
     try {
       const result = await djRecommend(
-        song.id,
-        song.name || '',
-        artists,
-        [], // 暂不传 recent_ids，后续可扩展
+        song.id, song.name || '', artists, excludeIds,
       )
-      djRecommendation.value = result
-      djTriggeredSongId = song.id
+      if (result?.commentary && result?.next_song) {
+        aiRadioRecommendation.value = result
+      }
       return result
-    } catch (e) {
-      // 静默失败（情感库不足等非关键错误）
+    } catch {
       return null
-    } finally {
-      djLoading.value = false
     }
+  }
+
+  /** AI 电台：播放推荐的下一首歌（TTS 结束后调用） */
+  function playAiRadioNext() {
+    const rec = aiRadioRecommendation.value
+    if (!rec?.next_song) {
+      aiRadioPending.value = false
+      return
+    }
+    const next = rec.next_song
+    aiRadioRecommendation.value = null
+    aiRadioPending.value = false
+    play({
+      id: next.id,
+      name: next.name,
+      artists: next.artists ? next.artists.split('/').map(n => ({ name: n.trim() })) : [],
+      cover: next.cover || '',
+      duration: next.duration || 0,
+    })
   }
 
   /** 记录播放历史（静默，失败不影响播放） */
@@ -339,8 +364,11 @@ export const useMusicStore = defineStore('music', () => {
     setVolume,
     togglePlayMode,
     normalizeSong,
-    djRecommendation,
-    djLoading,
-    requestDjRecommendation,
+    aiRadioEnabled,
+    aiRadioRecommendation,
+    aiRadioPending,
+    toggleAiRadio,
+    requestAiRadioRecommendation,
+    playAiRadioNext,
   }
 })
