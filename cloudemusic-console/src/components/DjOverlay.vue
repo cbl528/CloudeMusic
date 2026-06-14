@@ -16,9 +16,9 @@ watch([() => store.currentTime, () => store.duration], ([time, dur]) => {
   }
 })
 
-// 当 DJ 推荐结果就绪时显示浮层
+// 当 DJ 推荐结果就绪（有解说词且有推荐歌曲）时显示浮层
 watch(() => store.djRecommendation, (val) => {
-  if (val?.commentary) {
+  if (val?.commentary && val?.next_song) {
     visible.value = true
     startCountdown()
   }

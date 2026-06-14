@@ -3,7 +3,7 @@
 import logging
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.config import settings
 from app.schemas.models import (
@@ -114,7 +114,8 @@ async def register_song(req: DjRegisterRequest):
 async def recommend(req: DjRecommendRequest):
     """AI DJ 推荐：情感分析 + 相似检索 + 解说词生成。
 
-    需在前端播放进度超过 60% 时调用。
+    情感库不足或无可推荐歌曲时返回空响应（commentary=""，
+    next_song=null），不报错。前端据此控制浮层显隐。
     """
     current_id = str(req.current_song_id)
     index = get_index()
@@ -132,20 +133,16 @@ async def recommend(req: DjRecommendRequest):
                 index.register(current_id, name, artists, name or "未知歌曲")
         except Exception as e:
             logger.error("Failed to register current song %s: %s", current_id, e)
-            raise HTTPException(
-                status_code=500, detail="当前歌曲情感分析失败，请稍后重试"
-            )
+            return DjRecommendResponse()
 
     current_se = index.get(current_id)
     if not current_se:
-        raise HTTPException(status_code=404, detail="当前歌曲未找到情感数据")
+        return DjRecommendResponse()
 
-    # 2. 向量库歌曲数不足时返回提示
+    # 2. 情感库太少，跳过推荐（静默，不是错误）
     if index.count() < 3:
-        raise HTTPException(
-            status_code=404,
-            detail="情感库歌曲太少（<3首），播放更多歌曲后自动激活DJ推荐",
-        )
+        logger.info("Emotion index too small (%d), skip DJ recommend", index.count())
+        return DjRecommendResponse()
 
     # 3. 查找同情感歌曲
     candidates = index.recommend(
@@ -155,7 +152,8 @@ async def recommend(req: DjRecommendRequest):
     )
 
     if not candidates:
-        raise HTTPException(status_code=404, detail="未找到情感匹配的歌曲")
+        logger.info("No similar songs found for %s", current_id)
+        return DjRecommendResponse()
 
     next_se, score = candidates[0]
     logger.info(

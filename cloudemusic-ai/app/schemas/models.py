@@ -48,5 +48,5 @@ class DjRecommendRequest(BaseModel):
 
 
 class DjRecommendResponse(BaseModel):
-    commentary: str
-    next_song: SongItem
+    commentary: str = ""
+    next_song: SongItem | None = None
