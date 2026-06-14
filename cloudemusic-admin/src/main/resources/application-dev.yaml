@@ -59,3 +59,8 @@ minio:
 netease:
   api:
     base-url: http://127.0.0.1:3000
+
+# AI 服务（FastAPI）
+ai:
+  service:
+    url: http://127.0.0.1:8001
