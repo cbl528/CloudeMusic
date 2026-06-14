@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { getSongUrl, getSongDetail } from '@/api/song'
 import { addHistory } from '@/api/user'
+import { djRegister, djRecommend } from '@/api/ai'
 
 function normalizeSong(s) {
   if (!s) return null
@@ -29,6 +30,11 @@ export const useMusicStore = defineStore('music', () => {
   const playMode = ref('order') // order | random | single
   const loading = ref(false)
   const errorMsg = ref('')
+
+  // --- DJ 情感接续 ---
+  const djRecommendation = ref(null)   // { commentary, next_song }
+  const djLoading = ref(false)          // DJ 推荐加载中
+  let djTriggeredSongId = null          // 当前已触发推荐的歌曲 ID（避免重复触发）
 
   // --- 从 localStorage 恢复播放状态 ---
   function restorePlayback() {
@@ -126,6 +132,9 @@ export const useMusicStore = defineStore('music', () => {
 
     currentIndex.value = index
     savePlayback()
+    // 重置 DJ 推荐状态，允许新歌曲触发推荐
+    djRecommendation.value = null
+    djTriggeredSongId = null
     const song = list[index]
     loading.value = true
     errorMsg.value = ''
@@ -152,6 +161,8 @@ export const useMusicStore = defineStore('music', () => {
         await el.play()
         // 记录播放历史（已登录时）
         recordHistory(song)
+        // 静默注册 DJ 情感索引（fire-and-forget）
+        registerDj(song)
       } else {
         errorMsg.value = '该歌曲暂无播放源'
         playing.value = false
@@ -250,6 +261,42 @@ export const useMusicStore = defineStore('music', () => {
     if (audio) audio.volume = val
   }
 
+  /** 静默注册 DJ 情感索引（fire-and-forget，失败不影响播放） */
+  function registerDj(song) {
+    if (!song?.id) return
+    const artists = (song.artists || []).map(a => a.name || a).join(' / ')
+    djRegister(song.id, song.name || '', artists).catch(_ => {})
+  }
+
+  /** 请求 AI DJ 推荐（播放进度超 60% 时调用） */
+  async function requestDjRecommendation() {
+    const song = currentSong.value
+    if (!song || djLoading.value) return null
+
+    // 同一首歌已触发过推荐
+    if (djTriggeredSongId === song.id) return djRecommendation.value
+
+    const artists = (song.artists || []).map(a => a.name || a).join(' / ')
+    djLoading.value = true
+
+    try {
+      const result = await djRecommend(
+        song.id,
+        song.name || '',
+        artists,
+        [], // 暂不传 recent_ids，后续可扩展
+      )
+      djRecommendation.value = result
+      djTriggeredSongId = song.id
+      return result
+    } catch (e) {
+      // 静默失败（情感库不足等非关键错误）
+      return null
+    } finally {
+      djLoading.value = false
+    }
+  }
+
   /** 记录播放历史（静默，失败不影响播放） */
   function recordHistory(song) {
     if (!localStorage.getItem('token')) return
@@ -292,5 +339,8 @@ export const useMusicStore = defineStore('music', () => {
     setVolume,
     togglePlayMode,
     normalizeSong,
+    djRecommendation,
+    djLoading,
+    requestDjRecommendation,
   }
 })
