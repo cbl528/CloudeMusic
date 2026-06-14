@@ -2,17 +2,16 @@ package com.singularity.cloudemusicadmin.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,33 +20,57 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AiService {
 
-    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     @Value("${ai.service.url:http://127.0.0.1:8001}")
     private String aiServiceUrl;
 
-    /**
-     * 调用 FastAPI AI 服务生成智能歌单。
-     *
-     * @param keyword   用户输入的心情/场景关键词
-     * @param favorites 用户收藏歌曲列表（可为空）
-     * @return FastAPI 返回的原始 JSON
-     */
     public JsonNode generatePlaylist(String keyword, List<?> favorites) {
-        String url = aiServiceUrl + "/ai/playlist/generate";
+        String urlStr = aiServiceUrl + "/ai/playlist/generate";
 
-        ObjectNode requestBody = objectMapper.createObjectNode();
-        requestBody.put("keyword", keyword);
-        requestBody.set("favorites", objectMapper.valueToTree(favorites));
+        try {
+            // 构建请求体 JSON
+            Map<String, Object> body = new HashMap<>();
+            body.put("keyword", keyword);
+            body.put("favorites", favorites);
+            byte[] jsonBytes = objectMapper.writeValueAsString(body).getBytes(StandardCharsets.UTF_8);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
+            log.info("Calling AI service: keyword={}, favoritesCount={}, body={}",
+                    keyword, favorites.size(), new String(jsonBytes));
 
-        log.info("Calling AI service: keyword={}, favoritesCount={}", keyword, favorites.size());
-        ResponseEntity<JsonNode> response = restTemplate.postForEntity(
-                url, request, JsonNode.class);
-        return response.getBody();
+            // 用 HttpURLConnection 发送 POST 请求
+            URI uri = new URI(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(45000);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(jsonBytes);
+                os.flush();
+            }
+
+            int responseCode = conn.getResponseCode();
+            log.info("AI service response code: {}", responseCode);
+
+            // 读取响应
+            byte[] responseBytes;
+            if (responseCode >= 200 && responseCode < 300) {
+                responseBytes = conn.getInputStream().readAllBytes();
+            } else {
+                responseBytes = conn.getErrorStream().readAllBytes();
+                String errorBody = new String(responseBytes, StandardCharsets.UTF_8);
+                log.error("AI service error response: {}", errorBody);
+                throw new RuntimeException("AI 服务返回错误 " + responseCode + ": " + errorBody);
+            }
+
+            conn.disconnect();
+            return objectMapper.readTree(responseBytes);
+        } catch (Exception e) {
+            log.error("Failed to call AI service", e);
+            throw new RuntimeException("调用 AI 服务失败: " + e.getMessage(), e);
+        }
     }
 }
