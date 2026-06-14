@@ -11,7 +11,7 @@ class SongItem(BaseModel):
 
 
 class FavoriteItem(BaseModel):
-    songId: str = ""
+    songId: int | str = ""
     songName: str = ""
     artist: str = ""
     cover: str = ""

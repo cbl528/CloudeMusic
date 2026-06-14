@@ -131,7 +131,7 @@ async def generate_playlist(keyword: str, favorites: list[dict] | None = None) -
     # 3. LLM 策展歌单（结合搜索到的歌曲和用户收藏）
     logger.info("Step 3: LLM curation")
     song_list_text = "\n".join(
-        f"  {i+1}. {s['name']} - {s['artists']}"
+        f"  {i+1}. [{s['id']}] {s['name']} - {s['artists']}"
         for i, s in enumerate(all_songs)
     )
 
@@ -152,15 +152,25 @@ async def generate_playlist(keyword: str, favorites: list[dict] | None = None) -
 
     curation = call_llm_json(SYSTEM_CURATION, user_prompt)
 
-    # 4. 组装最终结果（补全封面等信息）
-    song_map = {s["id"]: s for s in all_songs}
+    # 4. 组装最终结果：用歌名+歌手匹配真实歌曲 ID（LLM 返回的 ID 不可靠）
+    def song_key(s):
+        return f"{s['name']}|{s['artists']}".lower().strip()
+
+    song_map = {song_key(s): s for s in all_songs}
 
     songs = []
     for item in curation.get("songs", []):
-        sid = str(item.get("id", ""))
-        matched = song_map.get(sid, {})
+        key = f"{item.get('name', '')}|{item.get('artists', '')}".lower().strip()
+        matched = song_map.get(key, {})
+        if not matched:
+            # 尝试只用歌名匹配
+            name_key = item.get("name", "").lower().strip()
+            for k, v in song_map.items():
+                if k.startswith(name_key):
+                    matched = v
+                    break
         songs.append({
-            "id": sid,
+            "id": matched.get("id", ""),
             "name": item.get("name", matched.get("name", "")),
             "artists": item.get("artists", matched.get("artists", "")),
             "cover": matched.get("cover", ""),
