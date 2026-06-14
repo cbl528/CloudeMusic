@@ -28,11 +28,25 @@ class PlaylistGenerateResponse(BaseModel):
     songs: list[SongItem]
 
 
-class DjCommentaryRequest(BaseModel):
+class DjRegisterRequest(BaseModel):
+    song_id: int | str
+    song_name: str = ""
+    song_artists: str = ""
+
+
+class DjRegisterResponse(BaseModel):
+    song_id: str
+    indexed: bool
+    emotion: str = ""
+
+
+class DjRecommendRequest(BaseModel):
     current_song_id: int | str
-    user_id: int | None = None
+    current_song_name: str = ""
+    current_song_artists: str = ""
+    recent_ids: list[int | str] = []
 
 
-class DjCommentaryResponse(BaseModel):
+class DjRecommendResponse(BaseModel):
     commentary: str
-    next_song: SongItem | None = None
+    next_song: SongItem

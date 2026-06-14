@@ -2,10 +2,12 @@
 import Sidebar from '@/components/Sidebar.vue'
 import PlayerBar from '@/components/PlayerBar.vue'
 import Toast from '@/components/Toast.vue'
+import DjOverlay from '@/components/DjOverlay.vue'
 </script>
 
 <template>
   <Toast />
+  <DjOverlay />
   <div class="layout">
     <Sidebar />
     <div class="right-container">

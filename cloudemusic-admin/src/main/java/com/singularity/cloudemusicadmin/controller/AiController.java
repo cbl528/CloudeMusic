@@ -2,6 +2,8 @@ package com.singularity.cloudemusicadmin.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.singularity.cloudemusicadmin.common.Result;
+import com.singularity.cloudemusicadmin.dto.request.DjRecommendRequest;
+import com.singularity.cloudemusicadmin.dto.request.DjRegisterRequest;
 import com.singularity.cloudemusicadmin.dto.request.PlaylistGenerateRequest;
 import com.singularity.cloudemusicadmin.service.AiService;
 import com.singularity.cloudemusicadmin.service.UserService;
@@ -42,6 +44,25 @@ public class AiController {
         }
 
         JsonNode result = aiService.generatePlaylist(request.getKeyword(), favorites);
+        return Result.success(result);
+    }
+
+    @PostMapping("/dj/register")
+    public Result<JsonNode> djRegister(@RequestBody @Valid DjRegisterRequest request) {
+        JsonNode result = aiService.djRegister(
+                request.getSongId(),
+                request.getSongName(),
+                request.getSongArtists());
+        return Result.success(result);
+    }
+
+    @PostMapping("/dj/recommend")
+    public Result<JsonNode> djRecommend(@RequestBody @Valid DjRecommendRequest request) {
+        JsonNode result = aiService.djRecommend(
+                request.getCurrentSongId(),
+                request.getCurrentSongName(),
+                request.getCurrentSongArtists(),
+                request.getRecentIds());
         return Result.success(result);
     }
 

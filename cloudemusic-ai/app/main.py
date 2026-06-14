@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import playlist
+from app.routers import playlist, dj
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,6 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(playlist.router)
+app.include_router(dj.router)
 
 
 @app.get("/health")
