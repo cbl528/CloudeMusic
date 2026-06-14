@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cloude/music/ai")
@@ -35,7 +36,7 @@ public class AiController {
         Long userId = tryExtractUserId(httpRequest);
 
         // 如果已登录，获取其收藏作为个性化参考
-        Object favorites = Collections.emptyList();
+        List<?> favorites = Collections.emptyList();
         if (userId != null) {
             favorites = userService.getFavorites(userId);
         }
