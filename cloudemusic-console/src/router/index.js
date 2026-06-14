@@ -9,6 +9,7 @@ import History from '@/views/History.vue'
 import Profile from '@/views/Profile.vue'
 import Settings from '@/views/Settings.vue'
 import AiPlaylist from '@/views/AiPlaylist.vue'
+import AiRadio from '@/views/AiRadio.vue'
 import PlaylistDetail from '@/views/PlaylistDetail.vue'
 import ArtistDetail from '@/views/ArtistDetail.vue'
 import AlbumDetail from '@/views/AlbumDetail.vue'
@@ -30,6 +31,7 @@ const router = createRouter({
         { path: 'artist/:id', name: 'artist', component: ArtistDetail, meta: { requiresAuth: false } },
         { path: 'album/:id', name: 'album', component: AlbumDetail, meta: { requiresAuth: false } },
         { path: 'ai-playlist', name: 'ai-playlist', component: AiPlaylist, meta: { requiresAuth: false } },
+        { path: 'ai-radio', name: 'ai-radio', component: AiRadio, meta: { requiresAuth: false } },
         { path: 'search', name: 'search', component: Search, meta: { requiresAuth: false } },
         { path: 'favorites', name: 'favorites', component: Favorites, meta: { requiresAuth: false } },
         { path: 'history', name: 'history', component: History, meta: { requiresAuth: false } },

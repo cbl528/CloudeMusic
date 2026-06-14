@@ -49,6 +49,7 @@ const navItems = [
     group: 'AI 功能',
     items: [
       { path: '/ai-playlist', label: 'AI 智能歌单', icon: 'mdi:auto-fix' },
+      { path: '/ai-radio', label: 'AI 电台', icon: 'mdi:radio' },
     ],
   },
   {
