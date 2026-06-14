@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { getHistory, clearHistory } from '@/api/user'
 import { useMusicStore } from '@/stores/music'
@@ -26,30 +26,7 @@ onMounted(async () => {
   }
 })
 
-// 按时间分组
-const groups = computed(() => {
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(today.getTime() - 86400000)
-  const weekStart = new Date(today.getTime() - today.getDay() * 86400000)
-
-  const map = { today: [], yesterday: [], week: [], earlier: [] }
-
-  for (const h of history.value) {
-    const d = new Date(h.playedAt)
-    if (d >= today) map.today.push(h)
-    else if (d >= yesterday) map.yesterday.push(h)
-    else if (d >= weekStart) map.week.push(h)
-    else map.earlier.push(h)
-  }
-
-  const result = []
-  if (map.today.length) result.push({ label: '今天', items: map.today })
-  if (map.yesterday.length) result.push({ label: '昨天', items: map.yesterday })
-  if (map.week.length) result.push({ label: '本周', items: map.week })
-  if (map.earlier.length) result.push({ label: '更早', items: map.earlier })
-  return result
-})
+// 已登录时数据已按 playedAt 倒序排列
 
 function playHistory(index) {
   if (!history.value.length) return
@@ -120,24 +97,21 @@ function onLoginClick() {
         <button class="btn-clear" @click="handleClear">清空播放历史</button>
       </div>
 
-      <!-- 时间分组 -->
-      <div v-for="group in groups" :key="group.label" class="time-group">
-        <h3 class="time-label">{{ group.label }}</h3>
-        <div
-          v-for="(item, i) in group.items"
-          :key="item.id"
-          class="song-row"
-          :class="{ active: musicStore.currentSong?.id === item.songId }"
-          @click="playHistory(history.indexOf(item))"
-        >
-          <span class="col-index">{{ history.indexOf(item) + 1 }}</span>
-          <span class="col-title">
-            <img v-if="item.cover" :src="item.cover + '?param=32y32'" class="row-cover" />
-            <span class="row-name" :class="{ highlight: musicStore.currentSong?.id === item.songId }">{{ item.songName }}</span>
-          </span>
-          <span class="col-artist">{{ item.artist || '未知' }}</span>
-          <span class="col-duration">{{ formatDuration(item.duration) }}</span>
-        </div>
+      <!-- 历史列表 -->
+      <div
+        v-for="(item, i) in history"
+        :key="item.id"
+        class="song-row"
+        :class="{ active: musicStore.currentSong?.id === item.songId }"
+        @click="playHistory(i)"
+      >
+        <span class="col-index">{{ i + 1 }}</span>
+        <span class="col-title">
+          <img v-if="item.cover" :src="item.cover + '?param=32y32'" class="row-cover" />
+          <span class="row-name" :class="{ highlight: musicStore.currentSong?.id === item.songId }">{{ item.songName }}</span>
+        </span>
+        <span class="col-artist">{{ item.artist || '未知' }}</span>
+        <span class="col-duration">{{ formatDuration(item.duration) }}</span>
       </div>
       <div class="list-footer">—— 暂时没有更多了 ——</div>
     </template>
@@ -227,19 +201,6 @@ function onLoginClick() {
 .btn-clear:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-}
-
-/* 时间分组 */
-.time-group {
-  margin-bottom: 24px;
-}
-.time-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 4px;
 }
 
 /* 歌曲行 */
