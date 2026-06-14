@@ -162,7 +162,20 @@ async def recommend(req: DjRecommendRequest):
         score,
     )
 
-    # 4. 生成解说词
+    # 4a. 如果推荐的歌曲缺少封面/时长，补充获取
+    if not next_se.cover or not next_se.duration:
+        try:
+            detail = await _fetch_song_detail(next_se.song_id)
+            if not next_se.cover:
+                next_se.cover = detail.get("cover", "")
+            if not next_se.duration:
+                next_se.duration = detail.get("duration", 0)
+            # 更新索引以便后续使用
+            next_se.vector = next_se.vector  # keep existing
+        except Exception:
+            pass
+
+    # 4b. 生成解说词
     commentary = await generate_dj_commentary(
         song_name=current_se.name,
         artists=current_se.artists,
